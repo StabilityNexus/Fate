@@ -1,21 +1,22 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { motion } from "framer-motion"
-import { PlusCircle, Unlock, Compass } from "lucide-react"
-import logo from '../../../public/Animated/logo-animated.gif'
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { PlusCircle, Key, Compass } from "lucide-react";
+import logo from "../../../public/Animated/logo-animated.gif";
+
 const Hero = () => {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return null
+    return null;
   }
 
   return (
@@ -32,6 +33,7 @@ const Hero = () => {
           transition={{ type: "spring", stiffness: 200, damping: 10 }}
           className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight"
         >
+          
           Fate Protocol
         </motion.h1>
         <motion.p
@@ -40,8 +42,9 @@ const Hero = () => {
           transition={{ delay: 0.2, duration: 0.8 }}
           className="text-lg sm:text-xl lg:text-2xl font-medium text-opacity-90"
         >
-          A decentralized, perpetual prediction market using dual vaults for fluid market mechanics. Buy and sell
-          bullCoins & bearCoins to speculate on trends in a dynamic, self-balancing ecosystem.
+          Decentralized perpetual prediction pools. <br />
+          Buy and sell bullCoins and bearCoins to dynamically hedge against
+          price risks.
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -49,34 +52,34 @@ const Hero = () => {
           transition={{ delay: 0.6, duration: 0.8 }}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
-          <Link href="/create-vault">
+          <Link href="/create-pool">
             <Button
               variant="default"
               size="lg"
               className="flex items-center space-x-2 bg-green-700 text-white hover:bg-green-600 transition-all duration-300 transform hover:scale-105 px-6 py-3 rounded-full shadow-lg"
             >
               <PlusCircle className="w-5 h-5" />
-              <span>Create Vault</span>
+              <span>Create Fate Pool</span>
             </Button>
           </Link>
-          <Link href="/use-vault">
+          <Link href="/use-pool">
             <Button
               variant="outline"
               size="lg"
               className="flex items-center space-x-2 border-2 border-green-700 text-green-700 hover:bg-green-700 hover:text-white transition-all duration-300 transform hover:scale-105 px-6 py-3 rounded-full shadow-lg"
             >
-              <Unlock className="w-5 h-5" />
-              <span>Use Vault</span>
+              <Key className="w-5 h-5" />
+              <span>Use a Fate Pool</span>
             </Button>
           </Link>
-          <Link href="/explore-vault">
+          <Link href="/explore-pools">
             <Button
               variant="default"
               size="lg"
               className="flex items-center space-x-2 bg-green-700 text-white hover:bg-green-600 transition-all duration-300 transform hover:scale-105 px-6 py-3 rounded-full shadow-lg"
             >
               <Compass className="w-5 h-5" />
-              <span>Explore Vault</span>
+              <span>Explore Fate Pools</span>
             </Button>
           </Link>
         </motion.div>
@@ -104,7 +107,7 @@ const Hero = () => {
         </motion.div>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
-export default Hero
+export default Hero;

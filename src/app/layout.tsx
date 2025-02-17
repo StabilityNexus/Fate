@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Fate Protocol - Perpetual Prediction Markets Reinvented',
+  title: 'Fate Protocol',
   description: 'Decentralized prediction markets with dual vaults. Buy and sell bullCoins and bearCoins to predict market trends.',
 }
 

@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { ArrowRight, TrendingUp } from "lucide-react"
+import { PlusCircle, Unlock, Compass } from "lucide-react"
 import logo from '../../../public/Animated/logo-animated.gif'
 const Hero = () => {
   const [mounted, setMounted] = useState(false)
@@ -46,27 +46,37 @@ const Hero = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
-          <Link href="/explore">
+          <Link href="/create-vault">
             <Button
               variant="default"
               size="lg"
-              className="bg-green-700 text-white hover:bg-green-600 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center space-x-2 px-6 py-3 rounded-full shadow-lg"
+              className="flex items-center space-x-2 bg-green-700 text-white hover:bg-green-600 transition-all duration-300 transform hover:scale-105 px-6 py-3 rounded-full shadow-lg"
             >
-              <span>Explore Markets</span>
-              <TrendingUp className="w-5 h-5" />
+              <PlusCircle className="w-5 h-5" />
+              <span>Create Vault</span>
             </Button>
           </Link>
-          <Link href="/learn-more">
+          <Link href="/use-vault">
             <Button
               variant="outline"
               size="lg"
-              className="border-2 border-green-700 text-green-700 hover:bg-green-700 hover:text-white transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center space-x-2 px-6 py-3 rounded-full shadow-lg"
+              className="flex items-center space-x-2 border-2 border-green-700 text-green-700 hover:bg-green-700 hover:text-white transition-all duration-300 transform hover:scale-105 px-6 py-3 rounded-full shadow-lg"
             >
-              <span>Learn More</span>
-              <ArrowRight className="w-5 h-5" />
+              <Unlock className="w-5 h-5" />
+              <span>Use Vault</span>
+            </Button>
+          </Link>
+          <Link href="/explore-vault">
+            <Button
+              variant="default"
+              size="lg"
+              className="flex items-center space-x-2 bg-green-700 text-white hover:bg-green-600 transition-all duration-300 transform hover:scale-105 px-6 py-3 rounded-full shadow-lg"
+            >
+              <Compass className="w-5 h-5" />
+              <span>Explore Vault</span>
             </Button>
           </Link>
         </motion.div>

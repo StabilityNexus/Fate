@@ -20,7 +20,7 @@ const Hero = () => {
   }
 
   return (
-    <div className="w-full min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-100 to-gray-200 text-black dark:from-[#1B3A2F] dark:to-[#0D1F1A] dark:text-white">
+    <div className="w-full min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 bg-green-50 text-black dark:from-[#1B3A2F] dark:to-[#0D1F1A] dark:text-white">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -31,16 +31,16 @@ const Hero = () => {
           initial={{ scale: 0.9 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 10 }}
-          className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight"
+          className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight font-serif"
         >
-          
           Fate Protocol
         </motion.h1>
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.8 }}
-          className="text-lg sm:text-xl lg:text-2xl font-medium text-opacity-90"
+          className="text-lg sm:text-xl lg:text-2xl font-medium text-opacity-90 font-serif"
         >
           Decentralized perpetual prediction pools. <br />
           Buy and sell bullCoins and bearCoins to dynamically hedge against
@@ -89,9 +89,11 @@ const Hero = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="flex flex-col items-center justify-center my-6"
+          className="flex items-center justify-center my-6"
         >
-          {/* <p className="text-sm sm:text-base font-medium">A project by</p> */}
+          <p className="text-sm sm:text-base font-medium font-serif mx-2">
+            A project by{" "}
+          </p>
           <Link href="https://news.stability.nexus/" target="_blank">
             <Image
               unoptimized

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { PredictionCard } from "@/components/FatePoolCard/FatePoolCard";
 import { Search, Plus } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 interface Pool {
   id: number;
@@ -141,6 +142,7 @@ const ExploreFatePools = () => {
           )}
         </div>
       </div>
+      <Footer/>
     </>
   );
 };

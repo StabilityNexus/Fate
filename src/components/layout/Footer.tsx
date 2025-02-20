@@ -12,7 +12,7 @@ const navigation = [
     ),
   },
   {
-    name: "X",
+    name: "X2",
     href: "https://x.com/StabilityNexus",
     icon: (props: SVGProps<SVGSVGElement>) => (
       <svg fill="currentColor" viewBox="0 0 24 24" {...props}>

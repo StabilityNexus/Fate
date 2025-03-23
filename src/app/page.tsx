@@ -8,7 +8,7 @@ export default function Home() {
     <>
       <Navbar />
       <Hero />
-      <AboutSection/>
+      <AboutSection />
       <Footer />
     </>
   );

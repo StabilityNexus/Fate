@@ -6,59 +6,90 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Coins, Repeat, ShieldCheck } from "lucide-react";
+import { CircleDollarSign, Infinity, Scale } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function AboutSection() {
   const features = [
     {
       icon: (
-        <Coins className="h-8 w-8 mb-4 text-green-700 dark:text-green-300" />
+        <motion.div
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 2 }}
+        >
+          <CircleDollarSign className="h-12 w-12 text-black dark:text-white" />
+        </motion.div>
       ),
       title: "Pool Approach",
       description:
-        "Hedge against risks using prediction pools instead of order-book-based prediction markets.",
+        "Hedge against risks with perpetual prediction pools — efficient, scalable, and seamless.",
     },
     {
       icon: (
-        <Repeat className="h-8 w-8 mb-4 text-green-700 dark:text-green-300" />
+        <motion.div
+          animate={{ rotate: [0, 360] }}
+          transition={{ duration: 4 }}
+        >
+          <Infinity className="h-12 w-12 text-black dark:text-white" />
+        </motion.div>
       ),
       title: "Continuous Operation",
       description:
-        "Experience an always-on prediction market that never expires, allowing for ongoing participation.",
+        "The future doesn’t pause. Our markets operate endlessly, adapting to every pulse of change.",
     },
     {
       icon: (
-        <ShieldCheck className="h-8 w-8 mb-4 text-green-700 dark:text-green-300" />
+        <motion.div
+          animate={{ y: [-5, 5, -5] }}
+          transition={{ duration: 2 }}
+        >
+          <Scale className="h-12 w-12 text-black dark:text-white" />
+        </motion.div>
       ),
       title: "Fairness & Transparency",
       description:
-        "Outcomes are guaranteed and executed by immutable smart contracts.",
+        "Immutable smart contracts ensure trust, fairness, and secure outcomes — powered by code, not bias.",
     },
   ];
 
   return (
-    <section id="features" className="py-10 pb-52 bg-green-50 dark:bg-[#0D1F1A]">
+    <section
+      id="features"
+      className="py-10 pb-32 bg-white dark:bg-black relative overflow-hidden"
+    >
+      {/* Subtle Background Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-300 dark:from-black dark:via-gray-900 dark:to-gray-800 opacity-60 blur-2xl pointer-events-none" />
+
       <div className="container mx-auto px-10">
-        <h2 className="text-3xl font-bold text-center font-serif mb-12 text-green-900 dark:text-white">
-          Key Features
+        <h2 className="text-4xl font-bold text-center mb-12 text-black dark:text-white tracking-widest">
+          Redefining Prediction Markets
         </h2>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <Card
+            <motion.div
               key={index}
-              className="text-center bg-white dark:bg-gray-800 shadow-lg transition-transform duration-300 ease-out transform hover:-translate-y-2 hover:shadow-2xl min-h-[250px] p-6"
+              whileHover={{ scale: 1.05 }}
+              className="bg-white/30 dark:bg-black/30 backdrop-blur-md shadow-md border border-white dark:border-gray-700 rounded-xl p-6 transition-all duration-300"
             >
               <CardHeader>
                 <div className="flex justify-center">{feature.icon}</div>
-                <CardTitle className="text-green-900 dark:text-white">
+                <CardTitle className="text-black dark:text-white text-xl font-bold">
                   {feature.title}
                 </CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-300">
+                <CardDescription className="text-gray-800 dark:text-gray-300 mt-2 text-sm leading-relaxed">
                   {feature.description}
                 </CardDescription>
               </CardHeader>
-            </Card>
+            </motion.div>
           ))}
+        </div>
+
+        {/* Meaningful Outro Statement */}
+        <div className="mt-20 text-center text-black dark:text-white text-lg">
+          <p>
+            *In a world of uncertainty, we provide clarity — empowering you to predict, protect, and prosper.*
+          </p>
         </div>
       </div>
     </section>

@@ -1,114 +1,160 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import { PlusCircle, Key, Compass } from "lucide-react";
-import logo from "../../../public/Animated/logo-animated.gif";
+"use client"
+import React, { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
+import Link from 'next/link';
 
 const Hero = () => {
-  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [lightOn, setLightOn] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 0) {
+      setLightOn((prevState) => !prevState);
+    }
+  };
 
   return (
-    <div className="w-full min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 bg-green-50 text-black dark:from-[#1B3A2F] dark:to-[#0D1F1A] dark:text-white">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="max-w-4xl text-center space-y-8"
-      >
-        <motion.h1
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 10 }}
-          className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight font-serif"
-        >
-          Fate Protocol
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="text-lg sm:text-xl lg:text-2xl font-medium text-opacity-90 font-serif"
-        >
-          Decentralized perpetual prediction pools. <br />
+    resolvedTheme ? (<div className="relative w-full h-screen overflow-hidden bg-black">
+      {/* Background Content (To Legacies) */}
+      <div className="absolute w-full h-full align-center justify-center bg-black dark:bg-white">
+        <h1 className={`text-white dark:text-black text-8xl align-center mt-[30%] md:mt-[10%] font-bold text-center pt-20 font-italiannoRegular`}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}>Fate Protocol</h1>
+        <p className={`text-white dark:text-black text-2xl mt-4 align-center text-center`} onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}> Decentralized perpetual prediction pools. <br />
           Buy and sell bullCoins and bearCoins to dynamically hedge against
-          price risks.
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-        >
-          <Link href="/create-pool">
-            <Button
-              variant="default"
-              size="lg"
-              className="flex items-center space-x-2 bg-green-700 text-white hover:bg-green-600 transition-all duration-300 transform hover:scale-105 px-6 py-3 rounded-full shadow-lg"
-            >
-              <PlusCircle className="w-5 h-5" />
-              <span>Create Fate Pool</span>
-            </Button>
+          price risks.</p>
+        <div className="flex gap-4 justify-center mt-8">
+          <Link href='/createPool'>
+            <button className={`px-6 py-3 border-2 rounded-full text-lg transition-all duration-300
+              ${resolvedTheme === "light"
+                ? "border-white text-white hover:bg-white hover:text-black"
+                : "border-black text-black hover:bg-black hover:text-white"}`}>
+              Create Pool
+            </button>
           </Link>
-          <Link href="/use-pool">
-            <Button
-              variant="outline"
-              size="lg"
-              className="flex items-center space-x-2 border-2 border-green-700 text-green-700 hover:bg-green-700 hover:text-white transition-all duration-300 transform hover:scale-105 px-6 py-3 rounded-full shadow-lg"
-            >
-              <Key className="w-5 h-5" />
-              <span>Use a Fate Pool</span>
-            </Button>
-          </Link>
-          <Link href="/explore-pools">
-            <Button
-              variant="default"
-              size="lg"
-              className="flex items-center space-x-2 bg-green-700 text-white hover:bg-green-600 transition-all duration-300 transform hover:scale-105 px-6 py-3 rounded-full shadow-lg"
-            >
-              <Compass className="w-5 h-5" />
-              <span>Explore Fate Pools</span>
-            </Button>
-          </Link>
-        </motion.div>
 
-        {/* Centered "A project by" section */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="flex items-center justify-center my-6"
-        >
-          <p className="text-sm sm:text-base font-medium font-serif mx-2">
-            A project by{" "}
-          </p>
-          <Link href="https://news.stability.nexus/" target="_blank">
-            <Image
-              unoptimized
-              fetchPriority="high"
-              loading="lazy"
-              src={logo}
-              alt="Stability Nexus Logo"
-              width={40}
-              height={40}
-              className="cursor-pointer py-2"
-            />
+          <Link href='/explore-pools'>
+            <button className={`px-6 py-3 border-2 rounded-full text-lg transition-all duration-300
+              ${resolvedTheme === "light"
+                ? "border-white text-white hover:bg-white hover:text-black"
+                : "border-black text-black hover:bg-black hover:text-white"}`}>
+              Explore Pool
+            </button>
           </Link>
-        </motion.div>
-      </motion.div>
-    </div>
+
+          <Link href='/usePool'>
+            <button className={`px-6 py-3 border-2 rounded-full text-lg transition-all duration-300
+              ${resolvedTheme === "light"
+                ? "border-white text-white hover:bg-white hover:text-black"
+                : "border-black text-black hover:bg-black hover:text-white"}`}>
+              Use Pool
+            </button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Flashlight Effect */}
+      <div
+        className={`absolute rounded-full z-30 bg-black dark:bg-white pointer-events-none transition-opacity duration-300 ${lightOn ? 'opacity-100' : 'opacity-0'}`}
+        style={{
+          top: `${mousePosition.y - 100}px`,
+          left: `${mousePosition.x - 100}px`,
+          width: '200px',
+          height: '200px',
+        }}
+      ></div>
+
+      {/* Foreground Content (From Land) */}
+      <div
+        className="absolute w-full h-full align-center justify-center"
+        style={{
+          backgroundColor: resolvedTheme === "dark" ? "black" : "white",
+          maskImage: isHovered
+            ? `radial-gradient(
+          circle at ${mousePosition.x}px ${mousePosition.y}px,
+          transparent 150px,
+          black 150px
+        )`
+            : `radial-gradient(
+          circle at ${mousePosition.x}px ${mousePosition.y}px,
+          transparent 20px,
+          black 20px
+        )`,
+          WebkitMaskImage: isHovered
+            ? `radial-gradient(
+          circle at ${mousePosition.x}px ${mousePosition.y}px,
+          transparent 150px,
+          black 150px
+        )`
+            : `radial-gradient(
+          circle at ${mousePosition.x}px ${mousePosition.y}px,
+          transparent 20px,
+          black 20px
+        )`,
+        }}
+      >
+        <h1 className="text-black dark:text-white text-8xl align-center mt-[30%] md:mt-[10%] font-bold text-center pt-20 font-italiannoRegular"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}>Fate Protocol</h1>
+        <p className='text-black dark:text-white text-2xl align-center mt-4 text-center'
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}> Decentralized perpetual prediction pools. <br />
+          Buy and sell bullCoins and bearCoins to dynamically hedge against
+          price risks.</p>
+
+        <div className="flex gap-4 justify-center mt-8">
+          <Link href='/createPool'>
+            <button className={`px-6 py-3 border-2 rounded-full text-lg transition-all duration-300
+              ${resolvedTheme === "dark"
+                ? "border-white text-white hover:bg-white hover:text-black"
+                : "border-black text-black hover:bg-black hover:text-white"}`}>
+              Create Pool
+            </button>
+          </Link>
+
+          <Link href='/explorePools'>
+            <button className={`px-6 py-3 border-2 rounded-full text-lg transition-all duration-300
+              ${resolvedTheme === "dark"
+                ? "border-white text-white hover:bg-white hover:text-black"
+                : "border-black text-black hover:bg-black hover:text-white"}`}>
+              Explore Pool
+            </button>
+          </Link>
+
+          <Link href='/usePool'>
+            <button className={`px-6 py-3 border-2 rounded-full text-lg transition-all duration-300
+              ${resolvedTheme === "dark"
+                ? "border-white text-white hover:bg-white hover:text-black"
+                : "border-black text-black hover:bg-black hover:text-white"}`}>
+              Use Pool
+            </button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Toggle Flashlight Button */}
+      <button
+        className="hidden fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-white text-black px-4 py-2 rounded-lg z-40"
+        onClick={() => setLightOn((prev) => !prev)}
+      >
+        {lightOn ? 'Turn Off Flashlight' : 'Turn On Flashlight'}
+      </button>
+    </div>) : (<></>)
   );
 };
 

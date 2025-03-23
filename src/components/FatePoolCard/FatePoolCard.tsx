@@ -26,49 +26,53 @@ export function PredictionCard({
   onUse,
 }: PredictionCardProps) {
   return (
-    <div className="w-full max-w-sm bg-white  hover:scale-[1.02] dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-      <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6">
+    <div className="w-full max-w-sm bg-white hover:scale-[1.02] dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+      {/* Title Section */}
+      <div className="bg-gradient-to-r from-gray-600 to-gray-800 p-6">
         <div className="mb-4">
           <h2 className="text-2xl font-bold text-white mb-1">{name}</h2>
-          <p className="text-green-100 text-sm">
+          <p className="text-gray-200 text-sm">
             {bullCoinName}/{bearCoinName} ({bullCoinSymbol}/{bearCoinSymbol})
           </p>
         </div>
       </div>
 
+
       <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between mb-2">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <div className="w-3 h-3 rounded-full bg-gray-500"></div>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {bullCoinSymbol} Bulls
               </span>
             </div>
-            <span className="text-sm font-bold text-green-600 dark:text-green-400">
+            <span className="text-sm font-bold text-gray-700 dark:text-gray-400">
               {bullPercentage.toFixed(1)}%
             </span>
           </div>
+
           <div className="flex justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <div className="w-3 h-3 rounded-full bg-gray-600"></div>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {bearCoinSymbol} Bears
               </span>
             </div>
-            <span className="text-sm font-bold text-red-600 dark:text-red-400">
+            <span className="text-sm font-bold text-gray-700 dark:text-gray-400">
               {bearPercentage.toFixed(1)}%
             </span>
           </div>
-          <RangeSlider value={bullPercentage} onChange={() => {}} />
+
+          <RangeSlider value={bullPercentage} onChange={() => { }} />
         </div>
 
         <button
           onClick={onUse}
-          className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium 
+          className="w-full py-3 px-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl font-medium 
                    flex items-center justify-center gap-2 transform transition-all duration-300
-                   hover:from-green-600 hover:to-emerald-700 hover:shadow-lg hover:-translate-y-0.5
-                   focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                   hover:from-gray-700 hover:to-gray-800 hover:shadow-lg hover:-translate-y-0.5
+                   focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
         >
           Enter Pool
           <ArrowRight size={18} />

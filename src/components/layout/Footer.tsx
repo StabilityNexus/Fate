@@ -1,6 +1,11 @@
+"use client"
+import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
+import logoBlack from "../../../public/logo-dark.png";
+import logoWhite from "../../../public/logo-white.png";
 import { SVGProps } from "react";
+
 const navigation = [
   {
     name: "X",
@@ -104,65 +109,73 @@ const navigation = [
 ];
 
 export default function Footer() {
+  const { resolvedTheme } = useTheme();
   return (
-    <footer className="w-full px-24 py-10 space-y-4  bg-green-800">
-      <div className="flex items-center justify-between">
-        <Link
-          href="https://stability.nexus/"
-          target="_blank"
-          className="cursor-pointer"
-        >
-          <Image
-            unoptimized
-            fetchPriority="high"
-            loading="lazy"
-            src="./logo.png"
-            alt="Stability Nexus Logo"
-            height={50}
-            width={50}
-          />
-        </Link>
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4 md:order-2">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              target="_blank"
-              className=" rounded-full bg-secondary/30 p-2 hover:bg-secondary"
-            >
-              <span className="sr-only">{item.name}</span>
-              <item.icon className="size-6" aria-hidden="true" />
-            </Link>
-          ))}
+    <footer className="w-full  rounded-lg backdrop-blur-md bg-white/10 dark:bg-black shadow-lg border border-white/10 dark:border-black/10">
+      <div className="px-8 py-6 space-y-6">
+        {/* Logo and Social Links */}
+        <div className="flex flex-col  md:flex-row ">
+          <div className="w-full flex mb-4 md:mb-0 justify-between"><Link
+            href="https://stability.nexus/"
+            target="_blank"
+            className="cursor-pointer"
+          >
+            <Image
+              src="/logo-animated.gif"
+              alt="Fate Protocol"
+              width={80}
+              height={80}
+              className="p-2"
+              priority
+            />
+          </Link>
+            <h5 className="text-xl sm:hidden md:hidden flex justify-center items-center">
+              A Project by Stability Nexus
+            </h5>
+
+          </div>
+          <div className="flex items-center space-x-4">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                target="_blank"
+                className="rounded-full bg-white/10 dark:bg-black/10 p-2 hover:bg-white/20 dark:hover:bg-black/20 transition-colors"
+              >
+                <span className="sr-only">{item.name}</span>
+                <item.icon className="size-6 text-black dark:text-white" aria-hidden="true" />
+              </Link>
+            ))}
+          </div>
         </div>
-        <div className="text-white flex items-center gap-3 md:order-1">
+
+        {/* Navigation Links */}
+        <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
           <Link
             href="https://stability.nexus/protocols"
             target="_blank"
-            className="font-medium hover:underline hover:decoration-primary hover:decoration-2"
+            className="text-black dark:text-white hover:underline hover:decoration-2"
           >
             Other Protocols
           </Link>
           <Link
             href="https://stability.nexus/research"
             target="_blank"
-            className="font-medium hover:underline hover:decoration-primary hover:decoration-2"
+            className="text-black dark:text-white hover:underline hover:decoration-2"
           >
             Research
           </Link>
           <Link
             href="https://news.stability.nexus/"
             target="_blank"
-            className=" font-medium hover:underline hover:decoration-primary hover:decoration-2"
+            className="text-black dark:text-white hover:underline hover:decoration-2"
           >
             News
           </Link>
           <Link
             href="https://docs.stability.nexus/"
             target="_blank"
-            className="font-medium hover:underline hover:decoration-primary hover:decoration-2"
+            className="text-black dark:text-white hover:underline hover:decoration-2"
           >
             Docs
           </Link>

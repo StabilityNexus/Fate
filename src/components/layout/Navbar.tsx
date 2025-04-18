@@ -7,18 +7,16 @@ import logoBlack from "../../../public/logo-dark.png";
 import logoWhite from "../../../public/logo-white.png";
 import { useTheme } from "next-themes";
 import { ModeToggle } from "../darkModeToggle";
-//import Avatar from "./Avatar";
-//import { useWallet } from "@/hooks/WalletConnectProvider";
 import { Menu, X } from "lucide-react";
+import { ConnectButton } from "@suiet/wallet-kit";
+import "@suiet/wallet-kit/style.css";
 
 const Navbar = () => {
-  //const { address } = useWallet();
   const { resolvedTheme } = useTheme();
   const [isThemeReady, setIsThemeReady] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-
     if (resolvedTheme) {
       setIsThemeReady(true);
     }
@@ -27,10 +25,10 @@ const Navbar = () => {
   if (!isThemeReady) return null;
 
   return (
-    <header className=" justify-between ">
+    <header className="justify-between">
       <div className="mx-auto flex items-center justify-between relative dark:bg-black px-5">
-        {/* Logo and Text */}
-        <div>
+        {/* Logo - Left Side */}
+        <div className="flex-shrink-0">
           <Link href="/">
             <div className="text-center">
               <Image
@@ -45,7 +43,7 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Hamburger Menu and ModeToggle for Small Screens */}
+        {/* Mobile Menu Toggle */}
         <div className="flex items-center space-x-4 md:hidden">
           <button
             className="z-20"
@@ -55,7 +53,6 @@ const Navbar = () => {
               <X className="w-8 h-8" />
             ) : (
               <Menu className="w-8 h-8 fill-current text-black dark:text-white" style={resolvedTheme == "dark" ? { color: "white" } : { color: "black" }} />
-
             )}
           </button>
           <ModeToggle />
@@ -72,7 +69,7 @@ const Navbar = () => {
                 <X className="w-8 h-8" />
               </button>
               <ul
-                className="flex flex-col space-y-4 text-lg  text-center"
+                className="flex flex-col space-y-4 text-lg text-center"
                 style={{ fontFamily: "var(--font-bebas-nueue)" }}
               >
                 <li>
@@ -102,30 +99,47 @@ const Navbar = () => {
                     Learn More
                   </Link>
                 </li>
+                <li>
+                  <div>
+                    <ConnectButton
+                      className={`font-medium rounded-full px-4 py-2 transition-colors ${resolvedTheme === "dark"
+                        ? "bg-white text-black hover:bg-gray-200"
+                        : "bg-black text-white hover:bg-gray-200"
+                        }`}
+                    />
+                  </div>
+                </li>
               </ul>
             </nav>
           </div>
         )}
 
-        {/* Desktop Navigation Links */}
+        {/* Desktop Navigation Links - Centered */}
         <nav
-          className="hidden md:flex relative space-x-8 text-md  text-center px-8 py-2 rounded-full bg-opacity-[10%] bg-black dark:bg-white dark:bg-opacity-[20%] dark:text-white"
+          className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-8 text-md text-center px-8 py-2 rounded-full bg-opacity-[10%] bg-black dark:bg-white dark:bg-opacity-[20%] dark:text-white"
           style={{ fontFamily: "var(--font-bebas-nueue)" }}
         >
-          <Link href="/explorePools" className="hover:text-blue-600 ">
+          <Link href="/explorePools" className="hover:text-blue-600">
             Explore
           </Link>
-          <Link href="/#Contact" className="hover:text-blue-600 ">
+          <Link href="/#Contact" className="hover:text-blue-600">
             About
           </Link>
-          <Link href="/#Contact" className="hover:text-blue-600 ">
+          <Link href="/#Contact" className="hover:text-blue-600">
             Learn More
           </Link>
         </nav>
 
-        <div className="hidden md:flex items-center space-x-4 ml-8">
-
-
+        {/* Wallet and Theme Toggle - Right Side */}
+        <div className="hidden md:flex items-center space-x-4 ml-auto">
+          <div>
+            <ConnectButton
+              className={`font-medium rounded-full px-4 py-2 transition-colors ${resolvedTheme === "dark"
+                ? "bg-white text-black hover:bg-gray-200"
+                : "bg-black text-white hover:bg-gray-200"
+                }`}
+            />
+          </div>
           <ModeToggle />
         </div>
       </div>

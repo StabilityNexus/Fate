@@ -8,6 +8,14 @@ const Hero = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [lightOn, setLightOn] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [vaultAddress, setVaultAddress] = useState('');
+
+  const handleSubmit = () => {
+    if (vaultAddress) {
+      window.location.href = `/usePool/${vaultAddress}`;
+    }
+  };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -57,14 +65,45 @@ const Hero = () => {
             </button>
           </Link>
 
-          <Link href='/usePool'>
-            <button className={`px-6 py-3 border-2 rounded-full text-lg transition-all duration-300
-              ${resolvedTheme === "light"
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className={`px-6 py-3 border-2 rounded-full text-lg transition-all duration-300
+          ${resolvedTheme === "light"
                 ? "border-white text-white hover:bg-white hover:text-black"
-                : "border-black text-black hover:bg-black hover:text-white"}`}>
-              Use Pool
-            </button>
-          </Link>
+                : "border-black text-black hover:bg-black hover:text-white"}`}
+          >
+            Use Pool
+          </button>
+
+          {isModalOpen && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-96">
+                <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">Enter Pool Address</h2>
+                <input
+                  type="text"
+                  value={vaultAddress}
+                  onChange={(e) => setVaultAddress(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded mb-4 dark:bg-gray-700 dark:text-white"
+                  placeholder="0x123...abc"
+                />
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-black dark:text-white rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
 
@@ -136,14 +175,42 @@ const Hero = () => {
             </button>
           </Link>
 
-          <Link href='/usePool'>
-            <button className={`px-6 py-3 border-2 rounded-full text-lg transition-all duration-300
+          <button onClick={() => setIsModalOpen(true)}
+            className={`px-6 py-3 border-2 rounded-full text-lg transition-all duration-300
               ${resolvedTheme === "dark"
                 ? "border-white text-white hover:bg-white hover:text-black"
                 : "border-black text-black hover:bg-black hover:text-white"}`}>
-              Use Pool
-            </button>
-          </Link>
+            Use Pool
+          </button>
+
+          {isModalOpen && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-96">
+                <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">Enter Pool Address</h2>
+                <input
+                  type="text"
+                  value={vaultAddress}
+                  onChange={(e) => setVaultAddress(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded mb-4 dark:bg-gray-700 dark:text-white"
+                  placeholder="0x123...abc"
+                />
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-black dark:text-white rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -131,10 +131,10 @@ const Navbar = () => {
         </nav>
 
         {/* Wallet and Theme Toggle - Right Side */}
-        <div className="hidden md:flex items-center space-x-4 ml-auto">
+        <div className="hidden md:flex items-center space-x-4  ">
           <div>
             <ConnectButton
-              className={`font-medium rounded-full px-4 py-2 transition-colors ${resolvedTheme === "dark"
+              className={`font-medium rounded-full transition-colors ${resolvedTheme === "dark"
                 ? "bg-white text-black hover:bg-gray-200"
                 : "bg-black text-white hover:bg-gray-200"
                 }`}

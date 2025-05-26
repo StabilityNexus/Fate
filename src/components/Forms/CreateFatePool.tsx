@@ -1,5 +1,6 @@
 "use client";
 
+import "dotenv/config"
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,40 +20,89 @@ import {
 } from "@/components/ui/tooltip";
 import { InfoIcon, Coins, Wallet, Percent } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Transaction } from "@mysten/sui/transactions";
+import { useWallet } from "@suiet/wallet-kit";
+
 
 export default function CreateFatePoolForm() {
+  const { account, signAndExecuteTransaction } = useWallet();
   // Separate state variables for each field
   const [poolName, setPoolName] = useState("");
   const [bullCoinName, setBullCoinName] = useState("");
   const [bullCoinSymbol, setBullCoinSymbol] = useState("");
   const [bearCoinName, setBearCoinName] = useState("");
   const [bearCoinSymbol, setBearCoinSymbol] = useState("");
-  const [erc20Address, setErc20Address] = useState("");
+  //const [erc20Address, setErc20Address] = useState("");
   const [creatorAddress, setCreatorAddress] = useState("");
   const [creatorStakeFee, setCreatorStakeFee] = useState("");
   const [creatorUnstakeFee, setCreatorUnstakeFee] = useState("");
   const [stakeFee, setStakeFee] = useState("");
   const [unstakeFee, setUnstakeFee] = useState("");
-  const [reallocationFactor, setReallocationFactor] = useState("");
+  //const [reallocationFactor, setReallocationFactor] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const formData = {
       poolName,
       bullCoinName,
       bullCoinSymbol,
       bearCoinName,
       bearCoinSymbol,
-      erc20Address,
+      //erc20Address,
       creatorAddress,
       creatorStakeFee,
       creatorUnstakeFee,
       stakeFee,
       unstakeFee,
-      reallocationFactor,
+      //reallocationFactor,
     };
+
     console.log("Form submitted:", formData);
+
+    if (!account?.address) {
+      alert("Please connect your wallet.");
+      return;
+    }
+
+    const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
+
+    if (!PACKAGE_ID) {
+      alert("PACKAGE_ID not defined in .env");
+      return;
+    }
+
+    try {
+      const tx = new Transaction();
+
+      const vault_creator = formData.creatorAddress || account.address;
+      const vault_fee = parseInt(formData.stakeFee || "0");
+      const vault_creator_fee = parseInt(formData.creatorStakeFee || "0");
+      const treasury_fee = parseInt(formData.unstakeFee || "0");
+
+      tx.moveCall({
+        target: `${PACKAGE_ID}::prediction_pool::create_prediction_pool`,
+        arguments: [
+          tx.pure.address(vault_creator),
+          tx.pure.u64(vault_fee),
+          tx.pure.u64(vault_creator_fee),
+          tx.pure.u64(treasury_fee),
+        ],
+      });
+      tx.setGasBudget(11_000_000);
+      const result = await signAndExecuteTransaction({
+        transaction: tx,
+      });
+
+      console.log("Transaction result:", result);
+      alert("Prediction Pool created successfully!");
+
+    } catch (err: any) {
+      console.error("Transaction error:", err);
+      alert(`Transaction failed: ${err.message || err}`);
+    }
   };
+
 
   return (
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto p-4">
@@ -260,7 +310,7 @@ export default function CreateFatePoolForm() {
               <h3 className="text-lg font-semibold text-black dark:text-white">
                 Address Configuration
               </h3>
-              {/* ERC20 Reserve Asset Address */}
+              {/* ERC20 Reserve Asset Address 
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Wallet className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -293,6 +343,7 @@ export default function CreateFatePoolForm() {
                   className="transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-gray-200 dark:border-gray-700 text-black dark:text-white"
                 />
               </div>
+              */}
               {/* Fee Recipient Address */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -477,7 +528,7 @@ export default function CreateFatePoolForm() {
 
             <Separator className="bg-gray-200 dark:bg-gray-700" />
 
-            {/* Reallocation Configuration */}
+            {/* Reallocation Configuration 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-black dark:text-white">
                 Reallocation Configuration
@@ -516,7 +567,7 @@ export default function CreateFatePoolForm() {
                 />
               </div>
             </div>
-
+            */}
             <Button
               type="submit"
               className="w-full mt-6 text-lg h-12 bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200"

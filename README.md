@@ -183,6 +183,8 @@ Join us at Stability Nexus and be a part of the conversation!
 ---
 
 ## Built With ❤️ by
+👨‍💻 **Dr. Bruno Woltzenlogel Paleo**  
+🔗 [[GitHub (ceilican)](https://github.com/ceilican)]
 
 👨‍💻 **Raj Jitendra Shah**  
 🔗 [GitHub (Rajshah1302)](https://github.com/Rajshah1302)

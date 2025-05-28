@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const Hero = () => {
+  const router = useRouter();
   const { resolvedTheme } = useTheme();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [lightOn, setLightOn] = useState(false);
@@ -13,7 +15,7 @@ const Hero = () => {
 
   const handleSubmit = () => {
     if (vaultAddress) {
-      window.location.href = `/usePool/${vaultAddress}`;
+      router.push(`/usePool/${vaultAddress}`);
     }
   };
 

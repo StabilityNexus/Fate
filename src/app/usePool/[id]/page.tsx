@@ -72,7 +72,6 @@ const UseFatePools = () => {
           id: objectID,
           options: { showContent: true },
         });
-        console.log("getobject response", response)
         if (!response.data?.content) {
           throw new Error("No content found in response");
         }
@@ -90,8 +89,6 @@ const UseFatePools = () => {
             options: { showContent: true },
           }),
         ]);
-        console.log("bull response", bullResponse);
-        console.log("bear response", bearResponse);
         if (!bullResponse.data?.content || !bearResponse.data?.content) {
           throw new Error("Failed to fetch token details");
         }
@@ -139,7 +136,6 @@ const UseFatePools = () => {
         };
 
         setPool(newPool);
-        console.log("Pool data:", newPool);
 
       } catch (err) {
         console.error("Error fetching prediction pool:", err);

@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -26,6 +27,7 @@ import { useWallet } from "@suiet/wallet-kit";
 
 export default function CreateFatePoolForm() {
   const { account, signAndExecuteTransaction } = useWallet();
+  const router = useRouter();
   // Separate state variables for each field
   const [poolName, setPoolName] = useState("");
   const [bullCoinName, setBullCoinName] = useState("");
@@ -93,9 +95,10 @@ export default function CreateFatePoolForm() {
       const result = await signAndExecuteTransaction({
         transaction: tx,
       });
-
+      router.push("/explorePools")
       console.log("Transaction result:", result);
       alert("Prediction Pool created successfully!");
+
 
     } catch (err: any) {
       console.error("Transaction error:", err);

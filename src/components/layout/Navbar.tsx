@@ -138,7 +138,7 @@ const Navbar = () => {
                 ? "bg-white text-black hover:bg-gray-200"
                 : "bg-black text-white hover:bg-gray-200"
                 }`}
-            />
+            >Connect Wallet</ConnectButton>
           </div>
           <ModeToggle />
         </div>

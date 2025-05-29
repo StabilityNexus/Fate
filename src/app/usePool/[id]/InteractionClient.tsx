@@ -46,11 +46,13 @@ interface DualTokenVaultProps {
 }
 
 export default function DualTokenVault({ tokens, vault }: DualTokenVaultProps) {
-    const [buyAmount, setBuyAmount] = useState<number>();
-    const [sellAmount, setSellAmount] = useState<number>();
+
+    const [bullAmount, setBullAmount] = useState<number>();
+    const [bearAmount, setBearAmount] = useState<number>();
     const bullValue = tokens.bullToken.price * tokens.bullToken.balance
     const bearValue = tokens.bearToken.price * tokens.bearToken.balance
-    const totalValue = bullValue + bearValue
+    const totalValue = bullValue + bearValue;
+
 
     const { account, signAndExecuteTransaction } = useWallet();
     const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
@@ -74,25 +76,24 @@ export default function DualTokenVault({ tokens, vault }: DualTokenVaultProps) {
 
         try {
             const tx = new Transaction();
-            const amountInMist = BigInt(amount * 1_000_000_000); // Convert SUI to Mist (1 SUI = 10^9 Mist)
+            const amountInMist = BigInt(amount * 1_000_000_000);
 
-            const coin = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)]);
 
             tx.moveCall({
                 target: `${PACKAGE_ID}::token::buy`,
+                typeArguments: ['0x2::sui::SUI'],
                 arguments: [
                     tx.object(tokenId),
-                    coin,
+                    tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)]),
                     tx.pure.address(account.address),
                     tx.pure.u64(amountInMist),
                 ],
+
             });
 
             tx.setGasBudget(11_000_000);
 
-            const result = await signAndExecuteTransaction({
-                transaction: tx,
-            });
+            const result = await signAndExecuteTransaction({ transaction: tx });
 
             console.log("Buy success:", result);
             alert("Deposit successful!");
@@ -144,6 +145,10 @@ export default function DualTokenVault({ tokens, vault }: DualTokenVaultProps) {
             console.error("Sell failed:", error);
             alert(`Withdraw failed: ${error.message || error}`);
         }
+    };
+
+    const handleDistribute = () => {
+        console.log("Distribute Outcome function call");
     };
 
 
@@ -229,52 +234,108 @@ export default function DualTokenVault({ tokens, vault }: DualTokenVaultProps) {
                         </div>
                     </section>
 
-                    <section className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 bg-white dark:bg-gray-900">
-                        <h2 className="text-2xl font-bold text-black dark:text-white mb-4">Actions</h2>
+                    <section className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 bg-white dark:bg-gray-900 shadow-lg">
+                        <h2 className="text-2xl font-bold text-black dark:text-white mb-6 text-center">Vault Actions</h2>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
-                                <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Deposit</h3>
+                            {/* Bear Pool Card */}
+                            <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
+                                <div className="flex items-center mb-4">
+                                    <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                                    <h3 className="text-lg font-semibold text-black dark:text-white">Bear Pool</h3>
+                                </div>
+
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Amount</label>
-                                        <input type="number" value={buyAmount} onChange={(e) => setBuyAmount(Number(e.target.value))} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-black dark:text-white dark:bg-gray-900" placeholder="0.00" />
+                                        <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Amount</label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                value={bearAmount || ''}
+                                                onChange={(e) => setBearAmount(Number(e.target.value))}
+                                                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                min="0"
+                                            />
+                                            <span className="absolute right-3 top-3 text-gray-400 dark:text-gray-500">SUI</span>
+                                        </div>
                                     </div>
-                                    <div className="flex space-x-2">
+
+                                    <div className="flex space-x-3">
                                         <button
-                                            onClick={() => buyAmount !== undefined && handleBuy(tokens.bullToken.id, buyAmount)}
-                                            className="px-4 py-2 bg-black text-white dark:bg-white dark:text-black rounded hover:bg-gray-800 dark:hover:bg-gray-200">
-                                            Deposit Bull
+                                            onClick={() => bearAmount !== undefined && handleBuy(tokens.bearToken.id, bearAmount)}
+                                            className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:from-red-700 hover:to-red-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={!bearAmount || bearAmount <= 0}
+                                        >
+                                            <span className="font-medium">Buy Bear</span>
                                         </button>
                                         <button
-                                            onClick={() => buyAmount !== undefined && handleBuy(tokens.bullToken.id, buyAmount)}
-                                            className="px-4 py-2 bg-black text-white dark:bg-white dark:text-black rounded hover:bg-gray-800 dark:hover:bg-gray-200">
-                                            Deposit Bear
+                                            onClick={() => bearAmount !== undefined && handleSell(tokens.bearToken.id, bearAmount)}
+                                            className="flex-1 px-4 py-3 bg-gradient-to-r from-gray-700 to-gray-600 text-white rounded-lg hover:from-gray-800 hover:to-gray-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={!bearAmount || bearAmount <= 0}
+                                        >
+                                            <span className="font-medium">Sell Bear</span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
-                                <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Withdraw</h3>
+                            {/* Bull Pool Card */}
+                            <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
+                                <div className="flex items-center mb-4">
+                                    <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                                    <h3 className="text-lg font-semibold text-black dark:text-white">Bull Pool</h3>
+                                </div>
+
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">Amount</label>
-                                        <input type="number" onChange={(e) => setSellAmount(Number(e.target.value))} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-black dark:text-white dark:bg-gray-900" placeholder="0.00" />
+                                        <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Amount</label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                value={bullAmount || ''}
+                                                onChange={(e) => setBullAmount(Number(e.target.value))}
+                                                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                min="0"
+                                            />
+                                            <span className="absolute right-3 top-3 text-gray-400 dark:text-gray-500">SUI</span>
+                                        </div>
                                     </div>
-                                    <div className="flex space-x-2">
+
+                                    <div className="flex space-x-3">
                                         <button
-                                            onClick={() => sellAmount !== undefined && handleSell(tokens.bullToken.id, sellAmount)}
-                                            className="px-4 py-2 bg-black text-white dark:bg-white dark:text-black rounded hover:bg-gray-800 dark:hover:bg-gray-200">
-                                            Withdraw Bull
+                                            onClick={() => bullAmount !== undefined && handleBuy(tokens.bullToken.id, bullAmount)}
+                                            className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-lg hover:from-green-700 hover:to-green-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={!bullAmount || bullAmount <= 0}
+                                        >
+                                            <span className="font-medium">Buy Bull</span>
                                         </button>
                                         <button
-                                            onClick={() => sellAmount !== undefined && handleSell(tokens.bearToken.id, sellAmount)}
-                                            className="px-4 py-2 bg-black text-white dark:bg-white dark:text-black rounded hover:bg-gray-800 dark:hover:bg-gray-200">
-                                            Withdraw Bear
+                                            onClick={() => bullAmount !== undefined && handleSell(tokens.bullToken.id, bullAmount)}
+                                            className="flex-1 px-4 py-3 bg-gradient-to-r from-gray-700 to-gray-600 text-white rounded-lg hover:from-gray-800 hover:to-gray-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={!bullAmount || bullAmount <= 0}
+                                        >
+                                            <span className="font-medium">Sell Bull</span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Distribute Button */}
+                        <div className="mt-8 flex justify-center">
+                            <button
+                                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl font-medium flex items-center"
+                                onClick={handleDistribute}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                                </svg>
+                                Distribute Rewards
+                            </button>
                         </div>
                     </section>
 
@@ -308,7 +369,7 @@ export default function DualTokenVault({ tokens, vault }: DualTokenVaultProps) {
                                     This dual-token vault allows you to take positions on market direction. Bull tokens increase in value when the market rises, while Bear tokens increase when the market falls. The vault automatically rebalances based on price movements.
                                 </p>
                                 <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                    <p>Prediction Pool: {tokens.bullToken.prediction_pool}</p>
+                                    <p className="text-sm font-mono block truncate">Prediction Pool: {tokens.bullToken.prediction_pool}</p>
                                     <p>Asset Balance: ${tokens.bullToken.asset_balance.toLocaleString()}</p>
                                 </div>
                             </div>

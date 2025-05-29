@@ -4,48 +4,40 @@ import { PredictionCard } from "@/components/FatePoolCard/FatePoolCard";
 import { Search, Plus } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
+import { SuiClient } from "@mysten/sui/client";
 import { useWallet } from "@suiet/wallet-kit";
+import { useRouter } from "next/navigation";
 
-interface Pool {
-  id: number;
+interface Token {
+  id: string;
   name: string;
-  bullPercentage: number;
-  bearPercentage: number;
-  volume?: string;
-  participants?: number;
+  symbol: string;
+  balance: number;
+  price: number;
+  vault_creator: string;
+  vault_fee: number;
+  vault_creator_fee: number;
+  treasury_fee: number;
+  asset_balance: number;
+  supply: number;
+  prediction_pool: string;
+  other_token: string;
 }
 
-{/**interface Pool {
+interface Pool {
   id: string;
   name: string;
   bullPercentage: number;
   bearPercentage: number;
-  bullCoinName: string;
-  bullCoinSymbol: string;
-  bearCoinName: string;
-  bearCoinSymbol: string;
+  bullToken?: Token;
+  bearToken?: Token;
   volume?: string;
   participants?: number;
 }
 
-interface PredictionPoolFields {
-  bear_token_id: string;
-  bull_token_id: string;
-  id: { id: string };
-  previous_price: string;
-  treasury_fee: string;
-  vault_creator: string;
-  vault_creator_fee: string;
-  vault_fee: string;
-}
-
-interface TokenFields {
-  name: string;
-  symbol: string;
-  supply: string;
-  [key: string]: any;
-} */}
+const calculateTokenValue = (token: Partial<Token>): number => {
+  return token.supply && token.supply > 0 ? (token.asset_balance || 0) / token.supply : 1;
+};
 
 const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
 
@@ -55,141 +47,149 @@ const ExploreFatePools = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
-
+  const router = useRouter();
   const client = new SuiClient({
     url: 'https://fullnode.testnet.sui.io',
   });
 
-
   useEffect(() => {
-    // Fetch pools (replace with actual API call)
-    setTimeout(() => {
-      setPools([
-        {
-          id: 1,
-          name: "Alpha Pool",
-          bullPercentage: 55.5,
-          bearPercentage: 44.5,
-          volume: "$1.2M",
-          participants: 234,
-        },
-        {
-          id: 2,
-          name: "Beta Pool",
-          bullPercentage: 60.2,
-          bearPercentage: 39.8,
-          volume: "$890K",
-          participants: 156,
-        },
-        {
-          id: 3,
-          name: "Gamma Pool",
-          bullPercentage: 48.3,
-          bearPercentage: 51.7,
-          volume: "$2.1M",
-          participants: 412,
-        },
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
-  {/**useEffect(() => {
-    const fetchPools = async () => {
-      if (!account?.address) {
+    const fetchTransactions = async () => {
+      if (!PACKAGE_ID) {
+        console.warn("Missing NEXT_PUBLIC_PACKAGE_ID in env");
+        setError("Missing package configuration");
         setLoading(false);
         return;
       }
 
       try {
-        setLoading(true);
-        setError(null);
+        const PREDICTION_POOL_TYPE = `${PACKAGE_ID}::prediction_pool::PredictionPool`;
 
-        // First get all objects owned by the user
-        const ownedObjects = await client.getOwnedObjects({
-          owner: account.address,
-          options: {
-            showContent: true,
-          },
+        // Step 1: Get recent transaction digests
+        const txn = await client.queryTransactionBlocks({
+          filter: { MoveFunction: { package: PACKAGE_ID } },
+          options: { showInput: true },
+          limit: 50,
         });
 
-        // Filter for PredictionPool objects
-        const poolObjects = ownedObjects.data.filter(obj =>
-          obj.data?.content?.dataType === "moveObject" &&
-          obj.data.content.type.includes("prediction_pool::PredictionPool")
+        // Step 2: Get detailed transactions
+        const detailedTxns = await Promise.all(
+          txn.data.map((tx) =>
+            client.getTransactionBlock({
+              digest: tx.digest,
+              options: { showObjectChanges: true },
+            })
+          )
         );
-        console.log("pool object", poolObjects)
-        // Process each pool to get token details
-        const processedPools = await Promise.all(
-          poolObjects.map(async (obj) => {
+
+        const foundPools: Pool[] = [];
+
+        // Step 3: Process transactions to find pools
+        for (const tx of detailedTxns) {
+          if (!tx.objectChanges) continue;
+
+          for (const change of tx.objectChanges) {
+            if (
+              change.type === "created" &&
+              "objectType" in change &&
+              change.objectType === PREDICTION_POOL_TYPE
+            ) {
+              foundPools.push({
+                id: change.objectId,
+                name: `Prediction Pool ${foundPools.length + 1}`,
+                bullPercentage: 0,
+                bearPercentage: 0,
+              });
+            }
+          }
+        }
+
+        // Step 4: Enrich pool data with token details
+        const enrichedPools: Pool[] = await Promise.all(
+          foundPools.map(async (pool) => {
             try {
-              const content = obj.data?.content;
-              if (!content || content.dataType !== "moveObject") return null;
+              const response = await client.getObject({
+                id: pool.id,
+                options: { showContent: true },
+              });
 
-              const poolData = content.fields as unknown as PredictionPoolFields;
-              if (!poolData) return null;
+              if (!response.data?.content || !('fields' in response.data.content)) {
+                console.warn(`No content for pool ${pool.id}`);
+                return pool;
+              }
 
-              // Fetch both tokens in parallel
-              const [bullToken, bearToken] = await Promise.all([
+              const poolFields = (response.data.content as any).fields;
+
+              // Fetch token details
+              const [bullResponse, bearResponse] = await Promise.all([
                 client.getObject({
-                  id: poolData.bull_token_id,
-                  options: { showContent: true }
+                  id: poolFields.bull_token_id,
+                  options: { showContent: true },
                 }),
                 client.getObject({
-                  id: poolData.bear_token_id,
-                  options: { showContent: true }
-                })
+                  id: poolFields.bear_token_id,
+                  options: { showContent: true },
+                }),
               ]);
 
-              // Helper function to parse token data
-              const parseTokenData = (token: any): TokenFields | null => {
-                if (!token.data?.content || token.data.content.dataType !== "moveObject") {
-                  return null;
-                }
-                return token.data.content.fields as unknown as TokenFields;
-              };
+              if (!bullResponse.data?.content || !bearResponse.data?.content) {
+                console.warn(`Missing token data for pool ${pool.id}`);
+                return pool;
+              }
 
-              const bullTokenData = parseTokenData(bullToken);
-              const bearTokenData = parseTokenData(bearToken);
-              if (!bullTokenData || !bearTokenData) return null;
+              const parseTokenData = (tokenData: any): Token => ({
+                id: tokenData.fields.id.id,
+                name: tokenData.fields.name,
+                symbol: tokenData.fields.symbol,
+                balance: parseInt(tokenData.fields.supply),
+                price: calculateTokenValue({
+                  supply: parseInt(tokenData.fields.supply),
+                  asset_balance: parseInt(tokenData.fields.asset_balance),
+                }),
+                vault_creator: tokenData.fields.vault_creator,
+                vault_fee: parseInt(tokenData.fields.vault_fee),
+                vault_creator_fee: parseInt(tokenData.fields.vault_creator_fee),
+                treasury_fee: parseInt(tokenData.fields.treasury_fee),
+                asset_balance: parseInt(tokenData.fields.asset_balance),
+                supply: parseInt(tokenData.fields.supply),
+                prediction_pool: tokenData.fields.prediction_pool,
+                other_token: tokenData.fields.other_token,
+              });
 
-              // Calculate percentages based on token supplies
-              const bullSupply = parseInt(bullTokenData.supply || "0");
-              const bearSupply = parseInt(bearTokenData.supply || "0");
-              const totalSupply = bullSupply + bearSupply || 1;
+              const bullToken = parseTokenData(bullResponse.data.content);
+              const bearToken = parseTokenData(bearResponse.data.content);
 
-              const bullPercentage = Math.round((bullSupply / totalSupply) * 100);
-              const bearPercentage = 100 - bullPercentage;
+              // Calculate percentages
+              const totalValue = bullToken.price * bullToken.balance + bearToken.price * bearToken.balance;
+              const bullPercentage = totalValue > 0
+                ? (bullToken.price * bullToken.balance) / totalValue * 100
+                : 50;
 
               return {
-                id: obj.data?.objectId || "",
-                name: `${bullTokenData.name} vs ${bearTokenData.name}`,
+                ...pool,
                 bullPercentage,
-                bearPercentage,
-                bullCoinName: bullTokenData.name,
-                bullCoinSymbol: bullTokenData.symbol,
-                bearCoinName: bearTokenData.name,
-                bearCoinSymbol: bearTokenData.symbol,
-                volume: "$0",
-                participants: 0,
+                bearPercentage: 100 - bullPercentage,
+                bullToken,
+                bearToken,
+                name: `${bullToken.symbol}/${bearToken.symbol} Pool`,
               };
-            } catch (error) {
-              console.error("Error processing pool:", error);
-              return null;
+            } catch (err) {
+              console.error(`Error processing pool ${pool.id}:`, err);
+              return pool;
             }
           })
         );
 
-        setPools(processedPools.filter(Boolean) as Pool[]);
-      } catch (error) {
-        console.error("Error fetching pools:", error);
-        setError("Failed to fetch pools. Please try again.");
+        setPools(enrichedPools);
+      } catch (err) {
+        console.error("Error fetching transactions:", err);
+        setError("Failed to fetch prediction pools.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPools();
-  }, [account?.address]); */}
+    fetchTransactions();
+  }, []);
 
   const filteredPools = pools.filter((pool) =>
     pool.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -209,7 +209,10 @@ const ExploreFatePools = () => {
                 <p className="text-red-500 dark:text-red-400 mt-2">{error}</p>
               )}
             </div>
-            <button className="mt-4 md:mt-0 flex items-center gap-2 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all transform hover:scale-105 dark:bg-white dark:text-black shadow-md">
+            <button
+              className="mt-4 md:mt-0 flex items-center gap-2 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all transform hover:scale-105 dark:bg-white dark:text-black shadow-md"
+              onClick={() => router.push('/createPool')}
+            >
               <Plus size={20} />
               Create New Pool
             </button>
@@ -217,7 +220,7 @@ const ExploreFatePools = () => {
 
           <div className="mb-8">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-gray-800/50 rounded-xl p-6 shadow-lg">
-              <div className="relative">
+              <div className="relative w-full md:w-auto">
                 <Search
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                   size={20}
@@ -265,22 +268,23 @@ const ExploreFatePools = () => {
                     name={pool.name}
                     bullPercentage={pool.bullPercentage}
                     bearPercentage={pool.bearPercentage}
-                    bullCoinName="Bull Coin"
-                    bullCoinSymbol="BULL"
-                    bearCoinName="Bear Coin"
-                    bearCoinSymbol="BEAR"
-                    onUse={() => console.log(`Using ${pool.name}`)}
+                    bullCoinName={pool.bullToken?.name || "Bull Token"}
+                    bullCoinSymbol={pool.bullToken?.symbol || "BULL"}
+                    bearCoinName={pool.bearToken?.name || "Bear Token"}
+                    bearCoinSymbol={pool.bearToken?.symbol || "BEAR"}
+                    onUse={() => {
+                      router.push(`/usePool/${encodeURIComponent(pool.id)}`)
+                    }}
                   />
                 </div>
               ))
-            )
-              : (
-                <div className="col-span-3 text-center py-12">
-                  <p className="text-lg text-gray-600 dark:text-gray-400">
-                    {pools.length === 0 ? "No pools found" : "No pools matching your search"}
-                  </p>
-                </div>
-              )}
+            ) : (
+              <div className="col-span-3 text-center py-12">
+                <p className="text-lg text-gray-600 dark:text-gray-400">
+                  {pools.length === 0 ? "No pools found" : "No pools matching your search"}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

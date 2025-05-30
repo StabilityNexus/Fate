@@ -55,7 +55,7 @@ A decentralized, perpetual prediction pool protocol on [Sui](https://sui.io/), d
 
 ## About the Project
 
-**Fate Protocol** is a decentralized prediction market platform designed to overcome the limitations of traditional systems. It introduces a **perpetual**, **on-chain**, and **permissionless** framework for prediction on the future value of digital assets such as **BTC/USD**, without being bound by expiration dates or centralized intermediaries.
+**Fate Protocol** is a decentralized prediction pool designed to overcome the limitations of traditional systems. It introduces a **perpetual**, **on-chain**, and **permissionless** framework for prediction on the future value of digital assets such as **BTC/USD**, without being bound by expiration dates or centralized intermediaries.
 
 <p align="center">
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&pause=2000&color=purple&center=true&vCenter=true&multiline=true&width=600&lines=Why+bet+on+tomorrow,+when+you+can+predict+forever?" alt="Typing SVG" />

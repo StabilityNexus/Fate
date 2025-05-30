@@ -55,7 +55,7 @@ A decentralized, perpetual prediction pool protocol on [Sui](https://sui.io/), d
 
 ## About the Project
 
-**Fate Protocol** is a decentralized prediction market platform designed to overcome the limitations of traditional systems. It introduces a **perpetual**, **on-chain**, and **permissionless** framework for speculating on the future value of digital assets such as **BTC/USD**, without being bound by expiration dates or centralized intermediaries.
+**Fate Protocol** is a decentralized prediction market platform designed to overcome the limitations of traditional systems. It introduces a **perpetual**, **on-chain**, and **permissionless** framework for prediction on the future value of digital assets such as **BTC/USD**, without being bound by expiration dates or centralized intermediaries.
 
 <p align="center">
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&pause=2000&color=purple&center=true&vCenter=true&multiline=true&width=600&lines=Why+bet+on+tomorrow,+when+you+can+predict+forever?" alt="Typing SVG" />
@@ -68,7 +68,7 @@ A decentralized, perpetual prediction pool protocol on [Sui](https://sui.io/), d
 Traditional prediction markets suffer from several critical limitations that restrict participation, scalability, and decentralization:
 
 **1. Expiry-Based Constraints**  
-Prediction markets traditionally operate with fixed expiration dates. This rigid design limits user engagement to predefined timeframes and prevents ongoing speculation, which is not ideal for continuously evolving markets like cryptocurrencies.
+Prediction markets traditionally operate with fixed expiration dates. This rigid design limits user engagement to predefined timeframes and prevents ongoing prediction, which is not ideal for continuously evolving markets like cryptocurrencies.
 
 **2. Dependency on Order Books**  
 Liquidity in traditional platforms is often managed through order books. This model introduces inefficiencies such as slippage and front-running, especially in low-volume markets. It also relies on active market makers to sustain usability.
@@ -159,7 +159,7 @@ npm run dev
 
 1. Connect your wallet via the frontend interface.
 2. Create Pool.
-3. Mint Bull or Bear tokens by depositing collateral.
+3. Mint Bull or Bear tokens by depositing SUI.
 4. Enter or exit positions at any time, markets are perpetual.
 
 ---

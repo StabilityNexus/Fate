@@ -1,0 +1,14 @@
+.cursorContainer {
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+.cursor {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+  mix-blend-mode: difference;
+}

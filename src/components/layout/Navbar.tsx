@@ -26,7 +26,7 @@ const Navbar = () => {
 
   return (
     <header className="justify-between p-3 bg-black sticky top-0 z-50">
-      <div className="mx-auto flex items-center justify-between relative bg-blackpx-5 bg-black">
+      <div className="mx-auto flex items-center justify-between relative px-5 bg-black">
         {/* Logo - Left Side */}
         <div className="flex-shrink-0">
           <Link href="/">
@@ -61,7 +61,7 @@ const Navbar = () => {
           </button>
           <ModeToggle />
         </div>
-        
+
         {isMenuOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-70 z-10 flex items-center justify-center">
             <nav className="bg-white dark:bg-gray-800 p-8 rounded-lg w-4/5 max-w-md shadow-lg relative">

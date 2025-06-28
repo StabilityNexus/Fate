@@ -1,12 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  animate,
-} from "framer-motion";
+import { motion, useMotionValue, useSpring, animate } from "framer-motion";
 import styles from "./style.module.scss";
 
 export default function StickyCursor({
@@ -18,6 +13,7 @@ export default function StickyCursor({
   const cursorRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const cursorSize = isHovered ? 60 : 15;
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   const mouse = {
     x: useMotionValue(0),
@@ -61,8 +57,19 @@ export default function StickyCursor({
     };
   }, [stickyRef]);
 
+  useEffect(() => {
+    setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0);
+  }, []);
+
+  if (isTouchDevice) {
+    return null; // Don't render custom cursor on touch devices
+  }
   return (
-    <div className={styles.cursorContainer}>
+    <div
+      className={styles.cursorContainer}
+      role="presentation"
+      aria-hidden="true"
+    >
       <motion.div
         ref={cursorRef}
         className={styles.cursor}

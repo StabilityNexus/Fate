@@ -1,6 +1,7 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+@import url("https://fonts.googleapis.com/css2?family=Unbounded:wght@800&display=swap");
 
 :root {
   --background: #ffffff;
@@ -59,13 +60,21 @@ body {
   }
 
   @keyframes marquee-left {
-    0% { transform: translateX(-100%) }
-    100% { transform: translateX(0%) }
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(0%);
+    }
   }
 
   @keyframes marquee-right {
-    0% { transform: translateX(0%) }
-    100% { transform: translateX(-100%) }
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
   }
 
   .animate-marquee-left {
@@ -77,10 +86,8 @@ body {
   }
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@800&display=swap');
-
 .font-fate {
-  font-family: 'Unbounded', sans-serif;
+  font-family: "Unbounded", sans-serif;
 }
 
 .fate-title {
@@ -99,4 +106,15 @@ body {
 
 .dark .fate-title:hover {
   color: white;
+}
+
+/* globals.css */
+::selection {
+  background-color: #000;
+  color: #fff;
+}
+
+html.dark ::selection {
+  background-color: #fff;
+  color: #000;
 }

@@ -57,7 +57,7 @@ const Section2 = () => {
   return (
     <div className="flex justify-between items-end">
       <h1 className="text-6xl md:text-8xl lg:text-[14vw] leading-[0.8] mt-10">
-        Fate Protocol.
+        Fate Protocol*
       </h1>
     </div>
   );

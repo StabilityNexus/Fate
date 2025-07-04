@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PoolAddressModal from "./PoolAddressModal";
-
+import { cn } from "@/lib/utils";
 const Hero = () => {
   const router = useRouter();
   const { resolvedTheme } = useTheme();
@@ -18,7 +18,12 @@ const Hero = () => {
   };
 
   if (!resolvedTheme) return null;
-
+  const buttonBaseStyles =
+    "px-6 py-3 border-2 rounded-full text-lg transition-all duration-300";
+  const buttonThemeStyles =
+    resolvedTheme === "dark"
+      ? "border-white text-white hover:bg-white hover:text-black"
+      : "border-black text-black hover:bg-black hover:text-white";
   return (
     <div className="w-full h-full flex flex-col items-center text-center mt-24">
       <h1 className="text-[15vw] font-bold font-fate fate-title">FATE</h1>
@@ -53,11 +58,7 @@ const Hero = () => {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className={`px-6 py-3 border-2 rounded-full text-lg transition-all duration-300 ${
-            resolvedTheme === "dark"
-              ? "border-white text-white hover:bg-white hover:text-black"
-              : "border-black text-black hover:bg-black hover:text-white"
-          }`}
+          className={cn(buttonBaseStyles, buttonThemeStyles)}
         >
           Use
         </button>

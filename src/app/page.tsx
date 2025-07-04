@@ -6,8 +6,8 @@ import Hero from "@/components/Home/Hero";
 import Navbar from "@/components/layout/Navbar";
 import Marquee from "@/components/Home/Marque";
 import StickyCursor from "@/components/StickyCursor";
-import FooterWrapper from "@/components/layout/FooterWrapper";
 import HeroWrapper from "@/components/Home/HeroWrapper";
+import Footer from "@/components/layout/Footer";
 
 export default function Home() {
   const stickyRef = useRef<HTMLElement>(null);
@@ -21,7 +21,7 @@ export default function Home() {
       </HeroWrapper>
       <Marquee />
       <AboutSection />
-      <FooterWrapper />
+      <Footer />
     </main>
   );
 }

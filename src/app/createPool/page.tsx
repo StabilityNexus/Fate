@@ -1,5 +1,5 @@
 "use client";
-import CreateFatePoolForm from "@/components/forms/CreateFatePool";
+import CreateFatePoolForm from "@/components/Forms/CreateFatePool";
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 

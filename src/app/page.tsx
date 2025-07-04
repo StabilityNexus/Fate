@@ -1,12 +1,12 @@
 "use client";
 
 import { useRef } from "react";
-import AboutSection from "@/components/Home/About";
-import Hero from "@/components/Home/Hero";
+import AboutSection from "@/components/home/About";
+import Hero from "@/components/home/Hero";
 import Navbar from "@/components/layout/Navbar";
-import Marquee from "@/components/Home/Marque";
-import StickyCursor from "@/components/StickyCursor";
-import HeroWrapper from "@/components/Home/HeroWrapper";
+import Marquee from "@/components/home/Marque";
+import StickyCursor from "@/components/stickyCursor";
+import HeroWrapper from "@/components/home/HeroWrapper";
 import Footer from "@/components/layout/Footer";
 
 export default function Home() {

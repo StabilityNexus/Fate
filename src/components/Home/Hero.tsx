@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import PoolAddressModal from "./PoolAddressModal";
 import { cn } from "@/lib/utils";
+import PoolAddressModal from "./PoolAddressModal";
 const Hero = () => {
   const router = useRouter();
   const { resolvedTheme } = useTheme();

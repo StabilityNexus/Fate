@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { PredictionCard } from "@/components/FatePoolCard/FatePoolCard";
+import { PredictionCard } from "@/components/fatePoolCard/FatePoolCard";
 import { Search, Plus } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";

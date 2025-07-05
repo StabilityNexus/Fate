@@ -1,16 +1,27 @@
+"use client";
+
+import { useRef } from "react";
 import AboutSection from "@/components/Home/About";
 import Hero from "@/components/Home/Hero";
-import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
-import DEPLOYED from "../utils/scripts/deployed_addresses.json"
+import Marquee from "@/components/Home/Marque";
+import StickyCursor from "@/components/StickyCursor";
+import HeroWrapper from "@/components/Home/HeroWrapper";
+import Footer from "@/components/layout/Footer";
 
 export default function Home() {
+  const stickyRef = useRef<HTMLElement>(null);
+
   return (
-    <>
+    <main className="relative h-[200vh]">
+      <StickyCursor stickyRef={stickyRef} />
       <Navbar />
-      <Hero />
+      <HeroWrapper>
+        <Hero />
+      </HeroWrapper>
+      <Marquee />
       <AboutSection />
       <Footer />
-    </>
+    </main>
   );
 }

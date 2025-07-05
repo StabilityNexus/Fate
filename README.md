@@ -62,6 +62,15 @@ A decentralized, perpetual prediction pool protocol on [Sui](https://sui.io/), d
 </p>
 
 ---
+### Architecture :
+![image](https://github.com/user-attachments/assets/25cb0d7f-439d-4132-949d-76ce5c163a45)
+---
+### Sequence Diagrams :
+![image](https://github.com/user-attachments/assets/01ea9b80-0c35-4632-a4e7-78042179bb37)
+
+![image](https://github.com/user-attachments/assets/9c792de3-76cc-40df-80cc-935bba700a79)
+
+---
 
 ### Problems with Traditional Prediction Markets
 

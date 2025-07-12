@@ -1,11 +1,8 @@
 "use client";
 
-import React from "react";
-
-const text = "Fate Protocol • The Future of Prediction Markets • ";
-const repeatedWords = text.repeat(10).split(" ");
-
 const Marquee = () => {
+  const text = "Fate Protocol • The Future of Prediction Markets • ";
+  const repeatedWords = text.repeat(10).split(" ");
   return (
     <div className="relative overflow-hidden bg-white dark:bg-black py-8">
       <div className="flex flex-col gap-6">

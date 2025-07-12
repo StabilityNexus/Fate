@@ -2,6 +2,7 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import url("https://fonts.googleapis.com/css2?family=Unbounded:wght@800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap");
 
 :root {
   --background: #ffffff;
@@ -22,7 +23,7 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 7px;
+  width: 0px;
 }
 
 /* ::-webkit-scrollbar-track {
@@ -117,4 +118,12 @@ body {
 html.dark ::selection {
   background-color: #fff;
   color: #000;
+}
+
+.font-sora {
+  font-family: "Sora", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
 }

@@ -1,6 +1,5 @@
 "use client";
 import CreateFatePoolForm from "@/components/Forms/CreateFatePool";
-import FooterWrapper from "@/components/layout/FooterWrapper";
 import Navbar from "@/components/layout/Navbar";
 
 export default function CreateFatePoolPage() {
@@ -11,7 +10,6 @@ export default function CreateFatePoolPage() {
         <CreateFatePoolForm />
       </div>
       <div className="h-[30vh] dark:bg-black bg-white"></div>
-      <FooterWrapper />
     </>
   );
 }

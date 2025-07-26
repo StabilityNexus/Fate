@@ -1,5 +1,9 @@
 "use client";
-
+import {
+  SuiPythClient,
+  SuiPriceServiceConnection,
+} from "@pythnetwork/pyth-sui-js";
+import { SuiClient } from "@mysten/sui/client";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +31,7 @@ export default function CreateFatePoolForm() {
   const router = useRouter();
   const { account, signAndExecuteTransaction } = useWallet();
   const [currentStep, setCurrentStep] = useState(1);
-  const [isSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const stepTitles = ["Pool", "Tokens", "Address", "Fees", "Review"];
@@ -45,6 +49,7 @@ export default function CreateFatePoolForm() {
     creatorUnstakeFee: "",
     stakeFee: "",
     unstakeFee: "",
+    priceInfoObjectId: "",
   });
 
   const updateFormData = (updates: Partial<FormData>) => {
@@ -58,6 +63,7 @@ export default function CreateFatePoolForm() {
       return newErrors;
     });
   };
+
   const validateStep = (step: number) => {
     const newErrors: FormErrors = {};
 
@@ -112,51 +118,123 @@ export default function CreateFatePoolForm() {
   const handlePrevious = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     console.log("Form submitted:", formData);
 
     if (!account?.address) {
       alert("Please connect your wallet.");
+      setIsSubmitting(false);
       return;
     }
 
     const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
+    const PYTH_STATE_ID = process.env.NEXT_PUBLIC_PYTH_STATE_ID;
+    const CLOCK_ID =
+      "0x0000000000000000000000000000000000000000000000000000000000000006";
+    const WORMHOLE_STATE_ID =
+      "0x31358d198147da50db32eda2562951d53973a0c0ad5ed738e9b17d88b213d790";
 
-    if (!PACKAGE_ID) {
-      alert("PACKAGE_ID not defined in .env");
+    if (!PACKAGE_ID || !PYTH_STATE_ID) {
+      alert("Missing environment variables for PACKAGE_ID or PYTH_STATE_ID");
+      setIsSubmitting(false);
       return;
     }
 
     try {
+      const poolName = formData.poolName || "Default Pool";
+      const poolDescription = formData.poolDescription || "A prediction pool";
+      const vaultCreatorFee = parseInt(formData.creatorStakeFee || "0");
+      const treasuryFee = parseInt(formData.unstakeFee || "0");
+      const treasuryAddress = formData.treasuryAddress || account.address;
+      const bullTokenName = `${poolName} Bull`;
+      const bullTokenSymbol = "BULL";
+      const bearTokenName = `${poolName} Bear`;
+      const bearTokenSymbol = "BEAR";
+
+      const connection = new SuiPriceServiceConnection(
+        "https://hermes-beta.pyth.network",
+        { priceFeedRequestConfig: { binary: true } }
+      );
+
+      const priceIDs = [
+        "0x50c67b3fd225db8912a424dd4baed60ffdde625ed2feaaf283724f9608fea266", // SUI/USD
+      ];
+
+      const priceUpdateData = await connection.getPriceFeedsUpdateData(
+        priceIDs
+      );
+
+      const suiClient = new SuiClient({
+        url: "https://fullnode.testnet.sui.io:443",
+      });
+      const pythClient = new SuiPythClient(
+        suiClient,
+        PYTH_STATE_ID,
+        WORMHOLE_STATE_ID
+      );
+
+      const updateTx = new Transaction();
+      const priceInfoObjectIds = await pythClient.updatePriceFeeds(
+        updateTx,
+        priceUpdateData,
+        priceIDs
+      );
+      const suiPriceObjectId = priceInfoObjectIds[0];
+      if (!suiPriceObjectId) {
+        throw new Error("suiPriceObjectId is undefined");
+      }
+
+      updateTx.setGasBudget(100_000_000);
+      console.log("Submitting price update transaction...");
+      await signAndExecuteTransaction({ transaction: updateTx });
+
       const tx = new Transaction();
 
-      const vault_creator = formData.creatorAddress || account.address;
-      const vault_fee = parseInt(formData.stakeFee || "0");
-      const vault_creator_fee = parseInt(formData.creatorStakeFee || "0");
-      const treasury_fee = parseInt(formData.unstakeFee || "0");
+      const assetIdBytes = Array.from(
+        Buffer.from(priceIDs[0].slice(2), "hex") 
+      );
 
       tx.moveCall({
-        target: `${PACKAGE_ID}::prediction_pool::create_prediction_pool`,
+        target: `${PACKAGE_ID}::prediction_pool::create_pool`,
         arguments: [
-          tx.pure.address(vault_creator),
-          tx.pure.u64(vault_fee),
-          tx.pure.u64(vault_creator_fee),
-          tx.pure.u64(treasury_fee),
+          tx.pure.vector("u8", Array.from(Buffer.from(poolName, "utf8"))),
+          tx.pure.vector(
+            "u8",
+            Array.from(Buffer.from(poolDescription, "utf8"))
+          ),
+          tx.pure.vector("u8", assetIdBytes), 
+          tx.pure.u64(vaultCreatorFee),
+          tx.pure.u64(treasuryFee),
+          tx.pure.address(treasuryAddress),
+          tx.pure.vector("u8", Array.from(Buffer.from(bullTokenName, "utf8"))),
+          tx.pure.vector(
+            "u8",
+            Array.from(Buffer.from(bullTokenSymbol, "utf8"))
+          ),
+          tx.pure.vector("u8", Array.from(Buffer.from(bearTokenName, "utf8"))),
+          tx.pure.vector(
+            "u8",
+            Array.from(Buffer.from(bearTokenSymbol, "utf8"))
+          ),
+          tx.object(suiPriceObjectId),
+          tx.object(CLOCK_ID),
         ],
       });
-      tx.setGasBudget(11_000_000);
-      const result = await signAndExecuteTransaction({
-        transaction: tx,
-      });
-      router.push("/explorePools");
-      console.log("Transaction result:", result);
+
+      tx.setGasBudget(500_000_000);
+      console.log("Submitting create_pool transaction...");
+      const result = await signAndExecuteTransaction({ transaction: tx });
+
+      console.log("Pool created:", result);
       alert("Prediction Pool created successfully!");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      router.push("/explorePools");
     } catch (err: any) {
       console.error("Transaction error:", err);
       alert(`Transaction failed: ${err.message || err}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

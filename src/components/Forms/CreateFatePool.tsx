@@ -158,9 +158,13 @@ export default function CreateFatePoolForm() {
         { priceFeedRequestConfig: { binary: true } }
       );
 
-      const priceIDs = [
-        "0x50c67b3fd225db8912a424dd4baed60ffdde625ed2feaaf283724f9608fea266", // SUI/USD
-      ];
+      const priceIDs: string[] = formData?.assetId
+        ? Array.isArray(formData.assetId)
+          ? formData.assetId
+          : [formData.assetId]
+        : [
+            "0x50c67b3fd225db8912a424dd4baed60ffdde625ed2feaaf283724f9608fea266",
+          ];
 
       const priceUpdateData = await connection.getPriceFeedsUpdateData(
         priceIDs
@@ -192,9 +196,7 @@ export default function CreateFatePoolForm() {
 
       const tx = new Transaction();
 
-      const assetIdBytes = Array.from(
-        Buffer.from(priceIDs[0].slice(2), "hex") 
-      );
+      const assetIdBytes = Array.from(Buffer.from(priceIDs[0].slice(2), "hex"));
 
       tx.moveCall({
         target: `${PACKAGE_ID}::prediction_pool::create_pool`,
@@ -204,7 +206,7 @@ export default function CreateFatePoolForm() {
             "u8",
             Array.from(Buffer.from(poolDescription, "utf8"))
           ),
-          tx.pure.vector("u8", assetIdBytes), 
+          tx.pure.vector("u8", assetIdBytes),
           tx.pure.u64(vaultCreatorFee),
           tx.pure.u64(treasuryFee),
           tx.pure.address(treasuryAddress),
@@ -230,6 +232,7 @@ export default function CreateFatePoolForm() {
       console.log("Pool created:", result);
       alert("Prediction Pool created successfully!");
       router.push("/explorePools");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Transaction error:", err);
       alert(`Transaction failed: ${err.message || err}`);

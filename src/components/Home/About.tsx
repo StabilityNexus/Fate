@@ -1,82 +1,39 @@
 "use client";
 
-import {
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { CircleDollarSign, Infinity, Scale } from "lucide-react";
+import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import features from "@/constants/Features";
 
 export default function AboutSection() {
-  const features = [
-    {
-      icon: (
-        <motion.div
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{ duration: 2 }}
-        >
-          <CircleDollarSign className="h-12 w-12 text-black dark:text-white" />
-        </motion.div>
-      ),
-      title: "Pool Approach",
-      description:
-        "Hedge against risks with perpetual prediction pools — efficient, scalable, and seamless.",
-    },
-    {
-      icon: (
-        <motion.div
-          animate={{ rotate: [0, 360] }}
-          transition={{ duration: 4 }}
-        >
-          <Infinity className="h-12 w-12 text-black dark:text-white" />
-        </motion.div>
-      ),
-      title: "Continuous Operation",
-      description:
-        "The future doesn’t pause. Our markets operate endlessly, adapting to every pulse of change.",
-    },
-    {
-      icon: (
-        <motion.div
-          animate={{ y: [-5, 5, -5] }}
-          transition={{ duration: 2 }}
-        >
-          <Scale className="h-12 w-12 text-black dark:text-white" />
-        </motion.div>
-      ),
-      title: "Fairness & Transparency",
-      description:
-        "Immutable smart contracts ensure trust, fairness, and secure outcomes — powered by code, not bias.",
-    },
-  ];
-
   return (
     <section
       id="features"
-      className="py-10 pb-32 bg-white dark:bg-black relative overflow-hidden"
+      className="relative pt-36 pb-32 bg-white dark:bg-black "
     >
-      {/* Subtle Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-300 dark:from-black dark:via-gray-900 dark:to-gray-800 opacity-60 blur-2xl pointer-events-none" />
+      {/* Visible gradient background */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-white to-gray-100 dark:from-black dark:to-gray-900 opacity-80" />
 
-      <div className="container mx-auto px-10">
-        <h2 className="text-4xl font-bold text-center mb-12 text-black dark:text-white tracking-widest">
-          Redefining Prediction Markets
+      <div className="container mx-auto px-6 md:px-16 relative z-10">
+        {/* Heading */}
+        <h2 className="text-center text-5xl md:text-7xl  font-bold font-fate fate-title mb-10">
+          Redefining <br className="hidden md:block" /> Prediction Markets
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {features.map((feature, index) => (
             <motion.div
               key={index}
-              whileHover={{ scale: 1.05 }}
-              className="bg-white/30 dark:bg-black/30 backdrop-blur-md shadow-md border border-white dark:border-gray-700 rounded-xl p-6 transition-all duration-300"
+              whileHover={{ scale: 1.07 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-3xl bg-white/40 dark:bg-[#0b0b0b]/50 border border-gray-200 dark:border-gray-800 p-10 backdrop-blur-lg shadow-xl hover:shadow-2xl transition-all"
             >
-              <CardHeader>
+              <CardHeader className="space-y-6">
                 <div className="flex justify-center">{feature.icon}</div>
-                <CardTitle className="text-black dark:text-white text-xl font-bold">
+                <CardTitle className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white">
                   {feature.title}
                 </CardTitle>
-                <CardDescription className="text-gray-800 dark:text-gray-300 mt-2 text-sm leading-relaxed">
+                <CardDescription className="text-center text-gray-700 dark:text-gray-300 text-base md:text-lg leading-relaxed">
                   {feature.description}
                 </CardDescription>
               </CardHeader>
@@ -84,10 +41,17 @@ export default function AboutSection() {
           ))}
         </div>
 
-        {/* Meaningful Outro Statement */}
-        <div className="mt-20 text-center text-black dark:text-white text-lg">
-          <p>
-            *In a world of uncertainty, we provide clarity — empowering you to predict, protect, and prosper.*
+        {/* Closing Statement */}
+        <div className="mt-28 text-center">
+          <p className="text-xl md:text-2xl text-gray-800 dark:text-gray-200 tracking-wide">
+            In a world of uncertainty, <br className="md:hidden" />
+            <span className="font-semibold">
+              we provide{" "}
+              <span className="underline decoration-wavy decoration-2">
+                clarity
+              </span>
+              .
+            </span>
           </p>
         </div>
       </div>

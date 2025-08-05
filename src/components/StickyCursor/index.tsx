@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { motion, useMotionValue, useSpring, animate } from "framer-motion";
-import styles from "./style.module.scss";
 
 export default function StickyCursor({
   stickyRef,
@@ -61,18 +60,17 @@ export default function StickyCursor({
     setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0);
   }, []);
 
-  if (isTouchDevice) {
-    return null; // Don't render custom cursor on touch devices
-  }
+  if (isTouchDevice) return null;
+
   return (
     <div
-      className={styles.cursorContainer}
+      className="pointer-events-none fixed top-0 left-0 z-[9999]"
       role="presentation"
       aria-hidden="true"
     >
       <motion.div
         ref={cursorRef}
-        className={styles.cursor}
+        className="absolute rounded-full will-change-transform mix-blend-difference"
         style={{
           left: smoothMouse.x,
           top: smoothMouse.y,

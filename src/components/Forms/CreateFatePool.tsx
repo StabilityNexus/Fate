@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import {
   SuiPythClient,
@@ -37,19 +38,19 @@ export default function CreateFatePoolForm() {
   const stepTitles = ["Pool", "Tokens", "Address", "Fees", "Review"];
   const totalSteps = 5;
 
-  // Form data state
   const [formData, setFormData] = useState<FormData>({
     poolName: "",
+    poolDescription: "",
+    assetId: "",
+    assetAddress: "",
     bullCoinName: "",
     bullCoinSymbol: "",
     bearCoinName: "",
     bearCoinSymbol: "",
-    creatorAddress: "",
-    creatorStakeFee: "",
-    creatorUnstakeFee: "",
-    stakeFee: "",
-    unstakeFee: "",
-    priceInfoObjectId: "",
+    poolCreatorFee: "",
+    poolCreatorAddress: "",
+    protocolFee: "",
+    stableOrderFee: "",
   });
 
   const updateFormData = (updates: Partial<FormData>) => {
@@ -88,17 +89,14 @@ export default function CreateFatePoolForm() {
         }
         break;
       case 4:
-        if (!formData.creatorStakeFee.trim()) {
-          newErrors.creatorStakeFee = "Creator stake fee is required";
+        if (!formData.poolCreatorFee.trim()) {
+          newErrors.poolCreatorFee = "Creator stake fee is required";
         }
-        if (!formData.creatorUnstakeFee.trim()) {
-          newErrors.creatorUnstakeFee = "Creator unstake fee is required";
+        if (!formData.protocolFee.trim()) {
+          newErrors.protocolFee = "Creator unstake fee is required";
         }
-        if (!formData.stakeFee.trim()) {
-          newErrors.stakeFee = "Stake fee is required";
-        }
-        if (!formData.unstakeFee.trim()) {
-          newErrors.unstakeFee = "Unstake fee is required";
+        if (!formData.stableOrderFee.trim()) {
+          newErrors.stableOrderFee = "Stake fee is required";
         }
         break;
       default:
@@ -145,9 +143,11 @@ export default function CreateFatePoolForm() {
     try {
       const poolName = formData.poolName || "Default Pool";
       const poolDescription = formData.poolDescription || "A prediction pool";
-      const vaultCreatorFee = parseInt(formData.creatorStakeFee || "0");
-      const treasuryFee = parseInt(formData.unstakeFee || "0");
-      const treasuryAddress = formData.treasuryAddress || account.address;
+      const assetAddress = formData.assetAddress || "0x0000000000000000000000000000000000000000";
+      const protocolFee = parseInt(formData.protocolFee || "100");
+      const stableOrderFee = parseInt(formData.stableOrderFee || "50");
+      const poolCreatorFee = parseInt(formData.poolCreatorFee || "50");
+      const poolCreator = formData.poolCreatorAddress || account.address;
       const bullTokenName = `${poolName} Bull`;
       const bullTokenSymbol = "BULL";
       const bearTokenName = `${poolName} Bear`;
@@ -185,17 +185,19 @@ export default function CreateFatePoolForm() {
         priceUpdateData,
         priceIDs
       );
+
       const suiPriceObjectId = priceInfoObjectIds[0];
       if (!suiPriceObjectId) {
-        throw new Error("suiPriceObjectId is undefined");
+        throw new Error("Failed to get price object ID from Pyth update");
       }
 
-      updateTx.setGasBudget(100_000_000);
-      console.log("Submitting price update transaction...");
-      await signAndExecuteTransaction({ transaction: updateTx });
+      updateTx.setGasBudget(50_000_000);
+      const updateResult = await signAndExecuteTransaction({
+        transaction: updateTx,
+      });
+      console.log("Price update result:", updateResult);
 
       const tx = new Transaction();
-
       const assetIdBytes = Array.from(Buffer.from(priceIDs[0].slice(2), "hex"));
 
       tx.moveCall({
@@ -207,9 +209,11 @@ export default function CreateFatePoolForm() {
             Array.from(Buffer.from(poolDescription, "utf8"))
           ),
           tx.pure.vector("u8", assetIdBytes),
-          tx.pure.u64(vaultCreatorFee),
-          tx.pure.u64(treasuryFee),
-          tx.pure.address(treasuryAddress),
+          tx.pure.address(assetAddress),
+          tx.pure.u64(protocolFee),
+          tx.pure.u64(stableOrderFee),
+          tx.pure.u64(poolCreatorFee),
+          tx.pure.address(poolCreator),
           tx.pure.vector("u8", Array.from(Buffer.from(bullTokenName, "utf8"))),
           tx.pure.vector(
             "u8",
@@ -225,17 +229,32 @@ export default function CreateFatePoolForm() {
         ],
       });
 
-      tx.setGasBudget(500_000_000);
-      console.log("Submitting create_pool transaction...");
+      tx.setGasBudget(100_000_000);
       const result = await signAndExecuteTransaction({ transaction: tx });
 
-      console.log("Pool created:", result);
+      console.log("Pool created successfully:", result);
+
+      const resultObj = typeof result === "string" ? JSON.parse(result) : result;
+
+      const poolId = resultObj.effects?.created?.[0]?.reference?.objectId;
+      if (poolId) {
+        console.log("New pool ID:", poolId);
+      }
+
       alert("Prediction Pool created successfully!");
       router.push("/explorePools");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Transaction error:", err);
-      alert(`Transaction failed: ${err.message || err}`);
+
+      if (err.message?.includes("InsufficientGas")) {
+        alert(
+          "Transaction failed: Insufficient gas. Please try again with a higher gas budget."
+        );
+      } else if (err.message?.includes("price")) {
+        alert("Transaction failed: Price feed error. Please try again.");
+      } else {
+        alert(`Transaction failed: ${err.message || err}`);
+      }
     } finally {
       setIsSubmitting(false);
     }

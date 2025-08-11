@@ -34,8 +34,8 @@ const Navbar = () => {
               <Image
                 src={logoWhite}
                 alt="Fate Protocol"
-                width={80}
-                height={80}
+                width={50}
+                height={50}
                 className="p-2"
                 priority
               />

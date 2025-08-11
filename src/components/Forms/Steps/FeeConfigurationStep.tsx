@@ -39,45 +39,7 @@ const FeeConfigurationStep: React.FC<FeeConfigurationStepProps> = ({
           <div className="flex items-center gap-2">
             <Percent className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Creator Stake Fee *
-            </Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="h-4 w-4 text-gray-600/70 dark:text-gray-400/70 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
-                  <p className="w-64 text-sm">
-                    Percentage of stake fees allocated to the creator
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <Input
-            type="number"
-            placeholder="0"
-            step="0.01"
-            min="0"
-            max="100"
-            value={formData.creatorStakeFee}
-            onChange={(e) =>
-              updateFormData({ creatorStakeFee: e.target.value })
-            }
-            className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-gray-200 dark:border-gray-700 text-black dark:text-white ${
-              errors.creatorStakeFee ? "border-red-500" : ""
-            }`}
-          />
-          {errors.creatorStakeFee && (
-            <p className="text-red-500 text-sm">{errors.creatorStakeFee}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Percent className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Creator Unstake Fee *
+              Protocol Fee *
             </Label>
           </div>
           <Input
@@ -86,10 +48,8 @@ const FeeConfigurationStep: React.FC<FeeConfigurationStepProps> = ({
             step="0.01"
             min="0"
             max="100"
-            value={formData.creatorUnstakeFee}
-            onChange={(e) =>
-              updateFormData({ creatorUnstakeFee: e.target.value })
-            }
+            value={formData.protocolFee}
+            onChange={(e) => updateFormData({ protocolFee: e.target.value })}
             className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-gray-200 dark:border-gray-700 text-black dark:text-white ${
               errors.creatorUnstakeFee ? "border-red-500" : ""
             }`}
@@ -103,7 +63,7 @@ const FeeConfigurationStep: React.FC<FeeConfigurationStepProps> = ({
           <div className="flex items-center gap-2">
             <Percent className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Stake Fee *
+              Stable Order Fee *
             </Label>
           </div>
           <Input
@@ -112,8 +72,8 @@ const FeeConfigurationStep: React.FC<FeeConfigurationStepProps> = ({
             step="0.01"
             min="0"
             max="100"
-            value={formData.stakeFee}
-            onChange={(e) => updateFormData({ stakeFee: e.target.value })}
+            value={formData.stableOrderFee}
+            onChange={(e) => updateFormData({ stableOrderFee: e.target.value })}
             className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-gray-200 dark:border-gray-700 text-black dark:text-white ${
               errors.stakeFee ? "border-red-500" : ""
             }`}
@@ -127,8 +87,20 @@ const FeeConfigurationStep: React.FC<FeeConfigurationStepProps> = ({
           <div className="flex items-center gap-2">
             <Percent className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Unstake Fee *
+              Pool Creator Fee *
             </Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoIcon className="h-4 w-4 text-gray-600/70 dark:text-gray-400/70 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
+                  <p className="w-64 text-sm">
+                    Percentage of fees allocated to the creator
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <Input
             type="number"
@@ -136,14 +108,14 @@ const FeeConfigurationStep: React.FC<FeeConfigurationStepProps> = ({
             step="0.01"
             min="0"
             max="100"
-            value={formData.unstakeFee}
-            onChange={(e) => updateFormData({ unstakeFee: e.target.value })}
+            value={formData.poolCreatorFee}
+            onChange={(e) => updateFormData({ poolCreatorFee: e.target.value })}
             className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-gray-200 dark:border-gray-700 text-black dark:text-white ${
-              errors.unstakeFee ? "border-red-500" : ""
+              errors.creatorStakeFee ? "border-red-500" : ""
             }`}
           />
-          {errors.unstakeFee && (
-            <p className="text-red-500 text-sm">{errors.unstakeFee}</p>
+          {errors.creatorStakeFee && (
+            <p className="text-red-500 text-sm">{errors.creatorStakeFee}</p>
           )}
         </div>
       </div>

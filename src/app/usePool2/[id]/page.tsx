@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import { useBuyTokens } from "@/fateHooks/useBuyTokens";
 import { useSellTokens } from "@/fateHooks/useSellTokens";
 import { useDistribute } from "@/fateHooks/useDistribute";
 import { usePool } from "@/fateHooks/usePool";
+import Footer from "@/components/layout/Footer";
 
 interface Token {
   id: string;
@@ -75,8 +76,6 @@ interface PoolData {
 interface UserData {
   bull_tokens: number;
   bear_tokens: number;
-  bull_value: number;
-  bear_value: number;
 }
 
 export default function PredictionPoolDashboard() {
@@ -85,8 +84,11 @@ export default function PredictionPoolDashboard() {
   const { distribute } = useDistribute();
   const { theme } = useTheme();
   const params = useParams();
-  const { connected } = useWallet();
-  const { pool, loading, error } = usePool(params?.id as string);
+  const { account, connected } = useWallet();
+  const { pool, userBalances, loading, error } = usePool(
+    params?.id as string,
+    account?.address as string
+  );
   const [activeVault, setActiveVault] = useState("bull");
   const [buyAmount, setBuyAmount] = useState("");
   const [sellAmount, setSellAmount] = useState("");
@@ -128,13 +130,12 @@ export default function PredictionPoolDashboard() {
         vault_creator_fee: 0,
         treasury_fee: 0,
       };
+  const [userData, setUserData] = useState<UserData>({} as UserData);
 
-  const userData = {
-    bull_tokens: 0,
-    bear_tokens: 0,
-  };
+  useEffect(() => {
+    setUserData(userBalances);
+  }, [userBalances]);
 
-  // Calculate derived values
   const bullReserve = poolData.bull_reserve;
   const bearReserve = poolData.bear_reserve;
   const totalReserves = bullReserve + bearReserve;
@@ -149,7 +150,6 @@ export default function PredictionPoolDashboard() {
     performance: poolData.treasury_fee,
   };
 
-  // Create tokens and vault objects for the handlers
   const tokens = pool
     ? {
         bullToken: {
@@ -204,20 +204,14 @@ export default function PredictionPoolDashboard() {
       }
     : null;
 
-  // Format helper functions
   const formatTokens = (amount: number) => {
     return (amount / 1000000000).toFixed(4);
-  };
-
-  const formatPrice = (price: number) => {
-    return `$${(price / 1000000000).toFixed(8)}`;
   };
 
   const formatValue = (value: number) => {
     return `$${(value / 1000000000).toFixed(4)}`;
   };
 
-  // Event handlers
   const handleBuyBull = async () => {
     if (!buyAmount || !vault) return;
     setIsLoading(true);
@@ -227,8 +221,7 @@ export default function PredictionPoolDashboard() {
         amount: parseFloat(buyAmount),
         isBull: true,
         vaultId: vault.id,
-        assetId:
-          "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b",
+        assetId: pool?.asset_address || "",
       });
       setBuyAmount("");
     } catch (err) {
@@ -247,8 +240,7 @@ export default function PredictionPoolDashboard() {
         amount: parseFloat(buyAmount),
         isBull: false,
         vaultId: vault.id,
-        assetId:
-          "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b",
+        assetId: pool?.asset_address || "",
       });
       setBuyAmount("");
     } catch (err) {
@@ -267,8 +259,7 @@ export default function PredictionPoolDashboard() {
         amount: parseFloat(sellAmount),
         isBull: true,
         vaultId: vault.id,
-        assetId:
-          "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b",
+        assetId: pool?.asset_address || "",
       });
       setSellAmount("");
     } catch (err) {
@@ -287,8 +278,7 @@ export default function PredictionPoolDashboard() {
         amount: parseFloat(sellAmount),
         isBull: false,
         vaultId: vault.id,
-        assetId:
-          "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b",
+        assetId: pool?.asset_address || "",
       });
       setSellAmount("");
     } catch (err) {
@@ -360,6 +350,35 @@ export default function PredictionPoolDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Side - Chart and Pool Details */}
           <div className="lg:col-span-2 space-y-6">
+            <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-semibold mb-2">
+                    {poolData.name}
+                  </h3>
+                  <Separator className="bg-gray-200 dark:bg-gray-700" />
+
+                  <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                    {poolData.description}
+                  </p>
+                  <div className="mt-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Previous On-Chain Price :
+                    </span>
+                    <span className="ml-2 font-semibold">
+                      $
+                      {(poolData.current_price / 10000).toLocaleString(
+                        undefined,
+                        {
+                          minimumFractionDigits: 8,
+                          maximumFractionDigits: 8,
+                        }
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
             {/* Price Chart */}
             <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
               <div className="w-full h-[500px] p-0">
@@ -381,31 +400,7 @@ export default function PredictionPoolDashboard() {
                 <h2 className="text-xl font-semibold">Pool Details</h2>
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">
-                    {poolData.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {poolData.description}
-                  </p>
-                  <div className="mt-2">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      Previous On-Chain Price :
-                    </span>
-                    <span className="ml-2 font-semibold">
-                      $
-                      {(poolData.current_price / 10000).toLocaleString(
-                        undefined,
-                        {
-                          minimumFractionDigits: 8,
-                          maximumFractionDigits: 8,
-                        }
-                      )}
-                    </span>
-                  </div>
-                </div>
-
+              <div className="space-y-3">
                 <Separator className="bg-gray-200 dark:bg-gray-700" />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -540,12 +535,12 @@ export default function PredictionPoolDashboard() {
                           Your Bull Tokens
                         </span>
                         <span className="text-lg font-bold text-green-600">
-                          {formatTokens(userData.bull_tokens)}
+                          {(userData.bull_tokens / 1e9).toFixed(8)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">
-                          Current Price
+                          Estimated Price
                         </span>
                         <span className="text-lg font-bold">
                           {(
@@ -559,7 +554,12 @@ export default function PredictionPoolDashboard() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">Total Value</span>
                         <span className="text-lg font-bold text-green-600">
-                          {formatValue(userData.bull_tokens)}
+                          {(
+                            (userData.bull_tokens / 1e9) *
+                            (poolData.bull_reserve /
+                              1e9 /
+                              (poolData.bull_supply / 1e9))
+                          ).toFixed(8)}
                         </span>
                       </div>
                     </div>
@@ -627,12 +627,12 @@ export default function PredictionPoolDashboard() {
                           Your Bear Tokens
                         </span>
                         <span className="text-lg font-bold text-red-600">
-                          {formatTokens(userData.bear_tokens)}
+                          {(userData.bear_tokens / 1e9).toFixed(8)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">
-                          Current Price
+                          Estimated Price
                         </span>
                         <span className="text-lg font-bold">
                           {(
@@ -646,7 +646,12 @@ export default function PredictionPoolDashboard() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">Total Value</span>
                         <span className="text-lg font-bold text-red-600">
-                          {formatValue(userData.bear_value)}
+                          {(
+                            (userData.bear_tokens / 1e9) *
+                            (poolData.bear_reserve /
+                              1e9 /
+                              (poolData.bear_supply / 1e9))
+                          ).toFixed(8)}
                         </span>
                       </div>
                     </div>
@@ -769,7 +774,7 @@ export default function PredictionPoolDashboard() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Asset ID
+                    Price
                   </span>
                   <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                     {poolData.asset_id.slice(0, 10)}...
@@ -780,7 +785,17 @@ export default function PredictionPoolDashboard() {
                     Your Portfolio Value
                   </span>
                   <span className="font-bold text-blue-600">
-                    {formatValue(userData.bull_value + userData.bear_value)}
+                    {(
+                      (userData.bull_tokens / 1e9) *
+                        (poolData.bull_reserve /
+                          1e9 /
+                          (poolData.bull_supply / 1e9)) +
+                      (userData.bear_tokens / 1e9) *
+                        (poolData.bear_reserve /
+                          1e9 /
+                          (poolData.bear_supply / 1e9))
+                    ).toFixed(8)}{" "}
+                    SUI
                   </span>
                 </div>
 
@@ -796,6 +811,7 @@ export default function PredictionPoolDashboard() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

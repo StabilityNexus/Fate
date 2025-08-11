@@ -27,17 +27,27 @@ interface Token {
 interface Pool {
   id: string;
   name: string;
+  description: string;
+  current_price: number;
+  asset_id: string;
+  creator: string;
   bullPercentage: number;
   bearPercentage: number;
+  bull_reserve: number;
+  bear_reserve: number;
   bullToken?: Token;
   bearToken?: Token;
   volume?: string;
   participants?: number;
+  created_at?: number;
 }
 
-const calculateTokenValue = (token: Partial<Token>): number => {
-  return token.supply && token.supply > 0 ? (token.asset_balance || 0) / token.supply : 1;
-};
+interface PoolCreatedEvent {
+  pool_id: string;
+  name: string;
+  creator: string;
+  initial_price: number;
+}
 
 const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
 
@@ -53,7 +63,7 @@ const ExploreFatePools = () => {
   });
 
   useEffect(() => {
-    const fetchTransactions = async () => {
+    const fetchPredictionPools = async () => {
       if (!PACKAGE_ID) {
         console.warn("Missing NEXT_PUBLIC_PACKAGE_ID in env");
         setError("Missing package configuration");
@@ -62,29 +72,112 @@ const ExploreFatePools = () => {
       }
 
       try {
-        const PREDICTION_POOL_TYPE = `${PACKAGE_ID}::prediction_pool::PredictionPool`;
+        setLoading(true);
+        setError(null);
 
-        // Step 1: Get recent transaction digests
-        const txn = await client.queryTransactionBlocks({
-          filter: { MoveFunction: { package: PACKAGE_ID } },
-          options: { showInput: true },
-          limit: 50,
-        });
+        // Method 1: Query PoolCreated events (Primary approach)
+        const poolCreatedEvents = await queryPoolCreatedEvents();
+        
+        // Method 2: Fallback - Query objects by type if events fail
+        let poolIds: string[] = [];
+        
+        if (poolCreatedEvents.length > 0) {
+          poolIds = poolCreatedEvents.map(event => event.pool_id);
+        } else {
+          console.log("No events found, falling back to object query...");
+          poolIds = await queryPoolsByObjectType();
+        }
 
-        // Step 2: Get detailed transactions
-        const detailedTxns = await Promise.all(
-          txn.data.map((tx) =>
-            client.getTransactionBlock({
-              digest: tx.digest,
-              options: { showObjectChanges: true },
-            })
-          )
+        console.log(`Found ${poolIds.length} pools:`, poolIds);
+
+        if (poolIds.length === 0) {
+          setPools([]);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch detailed pool data
+        const enrichedPools = await Promise.all(
+          poolIds.map(async (poolId, index) => {
+            try {
+              return await fetchPoolDetails(poolId, poolCreatedEvents[index]);
+            } catch (err) {
+              console.error(`Error fetching details for pool ${poolId}:`, err);
+              return null;
+            }
+          })
         );
 
-        const foundPools: Pool[] = [];
+        // Filter out failed fetches
+        const validPools = enrichedPools.filter((pool): pool is Pool => pool !== null);
+        
+        // Sort by creation time (newest first)
+        validPools.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+        
+        setPools(validPools);
+      } catch (err) {
+        console.error("Error fetching prediction pools:", err);
+        setError("Failed to fetch prediction pools. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        // Step 3: Process transactions to find pools
-        for (const tx of detailedTxns) {
+    // Query PoolCreated events
+    const queryPoolCreatedEvents = async (): Promise<PoolCreatedEvent[]> => {
+      try {
+        const eventType = `${PACKAGE_ID}::prediction_pool::PoolCreated`;
+        
+        const eventsResponse = await client.queryEvents({
+          query: { MoveEventType: eventType },
+          limit: 50,
+          order: 'descending'
+        });
+
+        const events: PoolCreatedEvent[] = eventsResponse.data
+          .map(event => {
+            if (event.parsedJson && typeof event.parsedJson === 'object') {
+              const parsed = event.parsedJson as any;
+              return {
+                pool_id: parsed.pool_id,
+                name: parsed.name,
+                creator: parsed.creator,
+                initial_price: parsed.initial_price
+              };
+            }
+            return null;
+          })
+          .filter((event): event is PoolCreatedEvent => event !== null);
+
+        console.log(`Found ${events.length} PoolCreated events`);
+        return events;
+      } catch (err) {
+        console.error("Error querying PoolCreated events:", err);
+        return [];
+      }
+    };
+
+    // Fallback: Query pools by object type
+    const queryPoolsByObjectType = async (): Promise<string[]> => {
+      try {
+        const PREDICTION_POOL_TYPE = `${PACKAGE_ID}::prediction_pool::PredictionPool`;
+        
+        // Query recent transactions that might have created pools
+        const txnResponse = await client.queryTransactionBlocks({
+          filter: { 
+            MoveFunction: { 
+              package: PACKAGE_ID,
+              module: 'prediction_pool',
+              function: 'create_pool'
+            } 
+          },
+          options: { showObjectChanges: true },
+          order: 'descending'
+        });
+
+        const poolIds: string[] = [];
+
+        for (const tx of txnResponse.data) {
           if (!tx.objectChanges) continue;
 
           for (const change of tx.objectChanges) {
@@ -93,106 +186,129 @@ const ExploreFatePools = () => {
               "objectType" in change &&
               change.objectType === PREDICTION_POOL_TYPE
             ) {
-              foundPools.push({
-                id: change.objectId,
-                name: `Prediction Pool ${foundPools.length + 1}`,
-                bullPercentage: 0,
-                bearPercentage: 0,
-              });
+              poolIds.push(change.objectId);
             }
           }
         }
 
-        // Step 4: Enrich pool data with token details
-        const enrichedPools: Pool[] = await Promise.all(
-          foundPools.map(async (pool) => {
-            try {
-              const response = await client.getObject({
-                id: pool.id,
-                options: { showContent: true },
-              });
-
-              if (!response.data?.content || !('fields' in response.data.content)) {
-                console.warn(`No content for pool ${pool.id}`);
-                return pool;
-              }
-
-              const poolFields = (response.data.content as any).fields;
-
-              // Fetch token details
-              const [bullResponse, bearResponse] = await Promise.all([
-                client.getObject({
-                  id: poolFields.bull_token_id,
-                  options: { showContent: true },
-                }),
-                client.getObject({
-                  id: poolFields.bear_token_id,
-                  options: { showContent: true },
-                }),
-              ]);
-
-              if (!bullResponse.data?.content || !bearResponse.data?.content) {
-                console.warn(`Missing token data for pool ${pool.id}`);
-                return pool;
-              }
-
-              const parseTokenData = (tokenData: any): Token => ({
-                id: tokenData.fields.id.id,
-                name: tokenData.fields.name,
-                symbol: tokenData.fields.symbol,
-                balance: parseInt(tokenData.fields.supply),
-                price: calculateTokenValue({
-                  supply: parseInt(tokenData.fields.supply),
-                  asset_balance: parseInt(tokenData.fields.asset_balance),
-                }),
-                vault_creator: tokenData.fields.vault_creator,
-                vault_fee: parseInt(tokenData.fields.vault_fee),
-                vault_creator_fee: parseInt(tokenData.fields.vault_creator_fee),
-                treasury_fee: parseInt(tokenData.fields.treasury_fee),
-                asset_balance: parseInt(tokenData.fields.asset_balance),
-                supply: parseInt(tokenData.fields.supply),
-                prediction_pool: tokenData.fields.prediction_pool,
-                other_token: tokenData.fields.other_token,
-              });
-
-              const bullToken = parseTokenData(bullResponse.data.content);
-              const bearToken = parseTokenData(bearResponse.data.content);
-
-              // Calculate percentages
-              const totalValue = bullToken.price * bullToken.balance + bearToken.price * bearToken.balance;
-              const bullPercentage = totalValue > 0
-                ? (bullToken.price * bullToken.balance) / totalValue * 100
-                : 50;
-
-              return {
-                ...pool,
-                bullPercentage,
-                bearPercentage: 100 - bullPercentage,
-                bullToken,
-                bearToken,
-                name: `${bullToken.symbol}/${bearToken.symbol} Pool`,
-              };
-            } catch (err) {
-              console.error(`Error processing pool ${pool.id}:`, err);
-              return pool;
-            }
-          })
-        );
-
-        setPools(enrichedPools);
+        console.log(`Found ${poolIds.length} pools via object changes`);
+        return poolIds;
       } catch (err) {
-        console.error("Error fetching transactions:", err);
-        setError("Failed to fetch prediction pools.");
-      } finally {
-        setLoading(false);
+        console.error("Error querying pools by object type:", err);
+        return [];
       }
     };
 
-    fetchTransactions();
+    // Fetch detailed pool information
+    const fetchPoolDetails = async (
+      poolId: string, 
+      eventData?: PoolCreatedEvent
+    ): Promise<Pool | null> => {
+      try {
+        const response = await client.getObject({
+          id: poolId,
+          options: { showContent: true },
+        });
+
+        if (!response.data?.content || !('fields' in response.data.content)) {
+          console.warn(`No content found for pool ${poolId}`);
+          return null;
+        }
+
+        const poolFields = (response.data.content as any).fields;
+
+        // Extract basic pool info
+        const poolName = poolFields.name || eventData?.name || `Pool ${poolId.slice(-8)}`;
+        const description = poolFields.description || "";
+        const currentPrice = parseInt(poolFields.current_price || "0");
+        const assetId = poolFields.asset_id || "";
+        const creator = poolFields.pool_creator || eventData?.creator || "";
+
+        // Get reserve balances
+        const bullReserve = parseInt(poolFields.bull_reserve?.fields?.value || "0");
+        const bearReserve = parseInt(poolFields.bear_reserve?.fields?.value || "0");
+        const totalReserve = bullReserve + bearReserve;
+
+        // Calculate percentages
+        const bullPercentage = totalReserve > 0 ? (bullReserve / totalReserve) * 100 : 50;
+        const bearPercentage = 100 - bullPercentage;
+
+        // Try to get token information if available
+        let bullToken: Token | undefined;
+        let bearToken: Token | undefined;
+
+        try {
+          if (poolFields.bull_token?.fields) {
+            const bullTokenFields = poolFields.bull_token.fields;
+            bullToken = {
+              id: bullTokenFields.id?.id || "",
+              name: bullTokenFields.name || "Bull Token",
+              symbol: bullTokenFields.symbol || "BULL",
+              balance: parseInt(bullTokenFields.supply || "0"),
+              price: 1,
+              vault_creator: creator,
+              vault_fee: 0,
+              vault_creator_fee: 0,
+              treasury_fee: 0,
+              asset_balance: bullReserve,
+              supply: parseInt(bullTokenFields.supply || "0"),
+              prediction_pool: poolId,
+              other_token: "",
+            };
+          }
+
+          if (poolFields.bear_token?.fields) {
+            const bearTokenFields = poolFields.bear_token.fields;
+            bearToken = {
+              id: bearTokenFields.id?.id || "",
+              name: bearTokenFields.name || "Bear Token",
+              symbol: bearTokenFields.symbol || "BEAR",
+              balance: parseInt(bearTokenFields.supply || "0"),
+              price: 1,
+              vault_creator: creator,
+              vault_fee: 0,
+              vault_creator_fee: 0,
+              treasury_fee: 0,
+              asset_balance: bearReserve,
+              supply: parseInt(bearTokenFields.supply || "0"),
+              prediction_pool: poolId,
+              other_token: "",
+            };
+          }
+        } catch (tokenErr) {
+          console.warn(`Could not fetch token details for pool ${poolId}:`, tokenErr);
+        }
+
+        const pool: Pool = {
+          id: poolId,
+          name: poolName,
+          description,
+          current_price: currentPrice,
+          asset_id: assetId,
+          creator,
+          bullPercentage,
+          bearPercentage,
+          bull_reserve: bullReserve,
+          bear_reserve: bearReserve,
+          bullToken,
+          bearToken,
+          created_at: eventData ? Date.now() : undefined,
+        };
+
+        return pool;
+      } catch (err) {
+        console.error(`Error fetching pool details for ${poolId}:`, err);
+        return null;
+      }
+    };
+
+    fetchPredictionPools();
   }, []);
 
   const filteredPools = pools.filter((pool) =>
-    pool.name.toLowerCase().includes(searchQuery.toLowerCase())
+    pool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    pool.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    pool.creator.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -220,17 +336,17 @@ const ExploreFatePools = () => {
 
           <div className="mb-8">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-gray-800/50 rounded-xl p-6 shadow-lg">
-              <div className="relative w-full md:w-auto">
+              <div className="relative w-full md:w-auto ">
                 <Search
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                   size={20}
                 />
                 <input
                   type="text"
-                  placeholder="Search pools..."
+                  placeholder="Search pools by name, description, or creator..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:text-white dark:bg-gray-900/60 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 outline-none transition-all"
+                  className="w-full min-w-40 pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:text-white dark:bg-gray-900/60 focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 outline-none transition-all"
                 />
               </div>
               <div className="flex gap-6">
@@ -248,7 +364,7 @@ const ExploreFatePools = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {loading ? (
-              Array.from({ length: 3 }).map((_, i) => (
+              Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
                   className="h-[400px] bg-white dark:bg-gray-700/30 rounded-xl shadow-lg animate-pulse"
@@ -263,7 +379,7 @@ const ExploreFatePools = () => {
               ))
             ) : filteredPools.length > 0 ? (
               filteredPools.map((pool) => (
-                <div key={pool.id}>
+                <div key={pool.id} className="group">
                   <PredictionCard
                     name={pool.name}
                     bullPercentage={pool.bullPercentage}
@@ -275,14 +391,27 @@ const ExploreFatePools = () => {
                     onUse={() => {
                       router.push(`/usePool/${encodeURIComponent(pool.id)}`)
                     }}
-                  />
+                  />                  
                 </div>
               ))
             ) : (
-              <div className="col-span-3 text-center py-12">
-                <p className="text-lg text-gray-600 dark:text-gray-400">
-                  {pools.length === 0 ? "No pools found" : "No pools matching your search"}
-                </p>
+              <div className="col-span-full text-center py-12">
+                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-8 shadow-lg">
+                  <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
+                    {searchQuery 
+                      ? `No pools found matching "${searchQuery}"` 
+                      : "No prediction pools found"
+                    }
+                  </p>
+                  {!searchQuery && (
+                    <button
+                      className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all dark:bg-white dark:text-black"
+                      onClick={() => router.push('/createPool')}
+                    >
+                      Create the First Pool
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>

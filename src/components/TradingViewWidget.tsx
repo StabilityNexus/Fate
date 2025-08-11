@@ -85,11 +85,8 @@ function TradingViewWidget({
 }: TradingViewWidgetProps) {
   const container = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState<boolean>(false);
-  const assetIdDecimal = parseInt(assetId, 10);
-  const assetIdHex = "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b";
-  
-  // Fix: Use the actual assetIdHex for lookup instead of hardcoded value
-  const assetConfig: AssetConfig | undefined = ASSET_CONFIG[assetIdHex];
+
+  const assetConfig: AssetConfig | undefined = ASSET_CONFIG[assetId];
 
   if (!assetConfig) {
     return (
@@ -176,9 +173,8 @@ function TradingViewWidget({
     container.current.appendChild(script);
   }, [assetId, theme, mounted, assetConfig.symbol]);
 
-  // Calculate the content height based on whether header is shown
-  const contentHeight = showHeader 
-    ? `calc(${height} - 60px)` // Subtract approximate header height
+  const contentHeight = showHeader
+    ? `calc(${height} - 60px)` 
     : height;
 
   return (
@@ -197,9 +193,9 @@ function TradingViewWidget({
       <CardContent className="p-0 flex-1 flex flex-col min-h-0">
         <div
           className="tradingview-widget-container flex-1 w-full"
-          style={{ 
+          style={{
             height: contentHeight,
-            minHeight: contentHeight
+            minHeight: contentHeight,
           }}
           ref={container}
         >

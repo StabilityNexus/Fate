@@ -1,167 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
+
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { SuiClient } from "@mysten/sui/client";
-import { useParams } from "next/navigation";
 import InteractionClient from "./InteractionClient";
-
-interface Token {
-  id: string;
-  name: string;
-  symbol: string;
-  balance: number;
-  price: number;
-  vault_creator: string;
-  vault_fee: number;
-  vault_creator_fee: number;
-  treasury_fee: number;
-  asset_balance: number;
-  supply: number;
-  prediction_pool: string;
-  other_token: string;
-}
-
-interface Pool {
-  id: string;
-  name: string;
-  description: string;
-  asset_id: string;
-  current_price: number;
-  bullToken: Token;
-  bearToken: Token;
-  bull_reserve: number;
-  bear_reserve: number;
-  vault_creator_fee: number;
-  treasury_fee: number;
-  vault_creator: string;
-  treasury: string;
-  bullPercentage: number;
-  bearPercentage: number;
-  totalValue: number;
-}
+import { useParams } from "next/navigation";
+import { usePool } from "@/fateHooks/usePool";
 
 const UseFatePools = () => {
   const params = useParams();
-  const [pool, setPool] = useState<Pool>();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const client = new SuiClient({
-    url: "https://fullnode.testnet.sui.io",
-  });
-
-  useEffect(() => {
-    const fetchPredictionPool = async () => {
-      const rawId = params?.id as string;
-
-      if (!rawId) {
-        setError("Missing object ID.");
-        setLoading(false);
-        return;
-      }
-
-      const objectID = decodeURIComponent(rawId);
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Fetch the main pool object
-        const response = await client.getObject({
-          id: objectID,
-          options: { showContent: true },
-        });
-
-        if (
-          !response.data?.content ||
-          response.data.content.dataType !== "moveObject"
-        ) {
-          throw new Error("No content found in response");
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const poolFields = (response.data.content as any).fields;
-        console.log(`Pool Fields: ${JSON.stringify(poolFields, null, 2)}`);
-        // Extract bull and bear token data from the pool
-        const bullTokenFields = poolFields.bull_token.fields;
-        const bearTokenFields = poolFields.bear_token.fields;
-
-        // Create token objects
-        const bullToken: Token = {
-          id: bullTokenFields.id.id,
-          name: bullTokenFields.name,
-          symbol: bullTokenFields.symbol,
-          balance: 0, // This would be user-specific, set to 0 for now
-          price:
-            parseFloat(poolFields.bull_reserve) /
-              parseFloat(bullTokenFields.total_supply) || 1,
-          vault_creator: poolFields.vault_creator,
-          vault_fee: 0, // Not stored in token anymore
-          vault_creator_fee: parseInt(poolFields.vault_creator_fee),
-          treasury_fee: parseInt(poolFields.treasury_fee),
-          asset_balance: parseInt(poolFields.bull_reserve),
-          supply: parseInt(bullTokenFields.total_supply),
-          prediction_pool: objectID,
-          other_token: bearTokenFields.id.id,
-        };
-
-        const bearToken: Token = {
-          id: bearTokenFields.id.id,
-          name: bearTokenFields.name,
-          symbol: bearTokenFields.symbol,
-          balance: 0, // This would be user-specific, set to 0 for now
-          price:
-            parseFloat(poolFields.bear_reserve) /
-              parseFloat(bearTokenFields.total_supply) || 1,
-          vault_creator: poolFields.vault_creator,
-          vault_fee: 0, // Not stored in token anymore
-          vault_creator_fee: parseInt(poolFields.vault_creator_fee),
-          treasury_fee: parseInt(poolFields.treasury_fee),
-          asset_balance: parseInt(poolFields.bear_reserve),
-          supply: parseInt(bearTokenFields.total_supply),
-          prediction_pool: objectID,
-          other_token: bullTokenFields.id.id,
-        };
-
-        // Calculate percentages based on reserves
-        const bullReserve = parseInt(poolFields.bull_reserve);
-        const bearReserve = parseInt(poolFields.bear_reserve);
-        const totalReserves = bullReserve + bearReserve;
-
-        const bullPercentage =
-          totalReserves > 0 ? (bullReserve / totalReserves) * 100 : 50;
-        const bearPercentage = 100 - bullPercentage;
-        const newPool: Pool = {
-          id: objectID,
-          name: poolFields.name,
-          description: poolFields.description,
-          asset_id: poolFields.asset_id,
-          current_price: parseInt(poolFields.current_price),
-          bullToken,
-          bearToken,
-          bull_reserve: bullReserve,
-          bear_reserve: bearReserve,
-          vault_creator_fee: parseInt(poolFields.vault_creator_fee),
-          treasury_fee: parseInt(poolFields.treasury_fee),
-          vault_creator: poolFields.vault_creator,
-          treasury: poolFields.treasury,
-          bullPercentage,
-          bearPercentage,
-          totalValue: totalReserves,
-        };
-
-        setPool(newPool);
-      } catch (err) {
-        console.error("Error fetching prediction pool:", err);
-        setError("Failed to fetch prediction pool.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPredictionPool();
-  }, [params]);
+  const { pool, loading, error } = usePool(params?.id as string);
 
   if (loading) {
     return (
@@ -187,32 +34,102 @@ const UseFatePools = () => {
     );
   }
 
-  // Prepare fees data (converting from basis points to percentages)
   const fees = {
-    entry: pool.vault_creator_fee / 100, // Convert basis points to percentage
-    exit: pool.vault_creator_fee / 100, // Convert basis points to percentage
-    performance: pool.treasury_fee / 100, // Convert basis points to percentage
+    entry: parseInt(pool.pool_creator_fee) / 100,
+    exit: parseInt(pool.pool_creator_fee) / 100,
+    performance: parseInt(pool.protocol_fee) / 100,
   };
+
+  const bullReserve = parseInt(pool.bull_reserve);
+  const bearReserve = parseInt(pool.bear_reserve);
+  const totalReserves = bullReserve + bearReserve;
+  const bullPercentage =
+    totalReserves > 0 ? (bullReserve / totalReserves) * 100 : 50;
+  const bearPercentage = 100 - bullPercentage;
 
   return (
     <>
       <Navbar />
       <InteractionClient
         tokens={{
-          bullToken: pool.bullToken,
-          bearToken: pool.bearToken,
+          bullToken: {
+            id: pool.bull_token.fields.id.id,
+            name: pool.bull_token.fields.name,
+            symbol: pool.bull_token.fields.symbol,
+            balance: 0,
+            price:
+              bullReserve /
+                parseInt(pool.bull_token.fields.total_supply) || 1,
+            vault_creator: pool.pool_creator,
+            vault_fee: 0,
+            vault_creator_fee: parseInt(pool.pool_creator_fee),
+            treasury_fee: parseInt(pool.protocol_fee),
+            asset_balance: bullReserve,
+            supply: parseInt(pool.bull_token.fields.total_supply),
+            prediction_pool: pool.id.id,
+            other_token: pool.bear_token.fields.id.id,
+          },
+          bearToken: {
+            id: pool.bear_token.fields.id.id,
+            name: pool.bear_token.fields.name,
+            symbol: pool.bear_token.fields.symbol,
+            balance: 0,
+            price:
+              bearReserve /
+                parseInt(pool.bear_token.fields.total_supply) || 1,
+            vault_creator: pool.pool_creator,
+            vault_fee: 0,
+            vault_creator_fee: parseInt(pool.pool_creator_fee),
+            treasury_fee: parseInt(pool.protocol_fee),
+            asset_balance: bearReserve,
+            supply: parseInt(pool.bear_token.fields.total_supply),
+            prediction_pool: pool.id.id,
+            other_token: pool.bull_token.fields.id.id,
+          },
         }}
         vault={{
-          id: pool.id,
-          asset_id: pool.asset_id,
-          bullToken: pool.bullToken,
-          bearToken: pool.bearToken,
-          bullPercentage: pool.bullPercentage,
-          bearPercentage: pool.bearPercentage,
-          totalValue: pool.totalValue,
+          id: pool.id.id,
+          asset_id: pool.asset_address,
+          bullToken: {
+            id: pool.bull_token.fields.id.id,
+            name: pool.bull_token.fields.name,
+            symbol: pool.bull_token.fields.symbol,
+            balance: 0,
+            price:
+              bullReserve /
+                parseInt(pool.bull_token.fields.total_supply) || 1,
+            vault_creator: pool.pool_creator,
+            vault_fee: 0,
+            vault_creator_fee: parseInt(pool.pool_creator_fee),
+            treasury_fee: parseInt(pool.protocol_fee),
+            asset_balance: bullReserve,
+            supply: parseInt(pool.bull_token.fields.total_supply),
+            prediction_pool: pool.id.id,
+            other_token: pool.bear_token.fields.id.id,
+          },
+          bearToken: {
+            id: pool.bear_token.fields.id.id,
+            name: pool.bear_token.fields.name,
+            symbol: pool.bear_token.fields.symbol,
+            balance: 0,
+            price:
+              bearReserve /
+                parseInt(pool.bear_token.fields.total_supply) || 1,
+            vault_creator: pool.pool_creator,
+            vault_fee: 0,
+            vault_creator_fee: parseInt(pool.pool_creator_fee),
+            treasury_fee: parseInt(pool.protocol_fee),
+            asset_balance: bearReserve,
+            supply: parseInt(pool.bear_token.fields.total_supply),
+            prediction_pool: pool.id.id,
+            other_token: pool.bull_token.fields.id.id,
+          },
+          bullPercentage,
+          bearPercentage,
+          totalValue: totalReserves,
           fees,
-          previous_price: pool.current_price,
-          vault_creator: pool.vault_creator,
+          previous_price: parseInt(pool.current_price),
+          vault_creator: pool.pool_creator,
         }}
       />
       <Footer />

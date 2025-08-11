@@ -3,13 +3,9 @@
 
 import { useState } from "react";
 import { Coins } from "lucide-react";
-import { Transaction } from "@mysten/sui/transactions";
-import { useWallet } from "@suiet/wallet-kit";
-import {
-  SuiPriceServiceConnection,
-  SuiPythClient,
-} from "@pythnetwork/pyth-sui-js";
-import { SuiClient } from "@mysten/sui/client";
+import { useBuyTokens } from "@/fateHooks/useBuyTokens";
+import { useSellTokens } from "@/fateHooks/useSellTokens";
+import { useDistribute } from "@/fateHooks/useDistribute";
 
 interface Token {
   id: string;
@@ -53,509 +49,53 @@ interface DualTokenVaultProps {
 }
 
 export default function DualTokenVault({ tokens, vault }: DualTokenVaultProps) {
+  const { buyTokens } = useBuyTokens();
+  const { sellTokens } = useSellTokens();
+  const { distribute } = useDistribute();
+
   const [bullAmount, setBullAmount] = useState<number>();
   const [bearAmount, setBearAmount] = useState<number>();
   const bullValue = tokens.bullToken.price * tokens.bullToken.balance;
   const bearValue = tokens.bearToken.price * tokens.bearToken.balance;
   const totalValue = bullValue + bearValue;
 
-  const { account, signAndExecuteTransaction } = useWallet();
-  const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
 
-  async function updatePythPrice(assetIds?: string[]) {
-    const PYTH_STATE_ID = process.env.NEXT_PUBLIC_PYTH_STATE_ID;
-    const WORMHOLE_STATE_ID =
-      "0x31358d198147da50db32eda2562951d53973a0c0ad5ed738e9b17d88b213d790";
-
-    if (!PYTH_STATE_ID) {
-      throw new Error("Missing PYTH_STATE_ID in environment variables");
-    }
-
-    // 1. Connect to Pyth price service
-    const connection = new SuiPriceServiceConnection(
-      "https://hermes-beta.pyth.network",
-      { priceFeedRequestConfig: { binary: true } }
-    );
-
-    const priceIDs = assetIds?.length
-      ? assetIds
-      : [
-          "0x50c67b3fd225db8912a424dd4baed60ffdde625ed2feaaf283724f9608fea266", // default price ID
-        ];
-
-    // 2. Get update data for price feeds
-    const priceUpdateData = await connection.getPriceFeedsUpdateData(priceIDs);
-
-    // 3. Set up Sui client and Pyth client
-    const suiClient = new SuiClient({
-      url: "https://fullnode.testnet.sui.io:443",
+  const handleBuyBull = (amount: number) => {
+    buyTokens({
+      amount,
+      isBull: true,
+      vaultId: vault.id,
+      assetId:
+        "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b",
     });
+  };
 
-    const pythClient = new SuiPythClient(
-      suiClient,
-      PYTH_STATE_ID,
-      WORMHOLE_STATE_ID
-    );
-
-    // 4. Build transaction for updating price feeds
-    const updateTx = new Transaction();
-    const priceInfoObjectIds = await pythClient.updatePriceFeeds(
-      updateTx,
-      priceUpdateData,
-      priceIDs
-    );
-
-    if (!priceInfoObjectIds.length) {
-      throw new Error("No price info object IDs returned from Pyth update");
-    }
-
-    const suiPriceObjectId = priceInfoObjectIds[0];
-    updateTx.setGasBudget(50_000_000);
-
-    // 5. Sign & execute transaction
-    const updateResult = await signAndExecuteTransaction({
-      transaction: updateTx,
+  const handleBuyBear = (amount: number) => {
+    buyTokens({
+      amount,
+      isBull: false,
+      vaultId: vault.id,
+      assetId:
+        "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b",
     });
-
-    console.log("Pyth price update result:", updateResult);
-
-    return {
-      suiPriceObjectId,
-      updateResult,
-    };
-  }
-
-  const handleBuyBull = async (amount: number) => {
-    if (!amount || amount <= 0 || !account?.address) {
-      alert("Please enter a valid amount and connect your wallet");
-      return;
-    }
-
-    const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
-    const CLOCK_ID =
-      "0x0000000000000000000000000000000000000000000000000000000000000006";
-
-    if (!PACKAGE_ID) {
-      alert("Missing PACKAGE_ID in environment variables");
-      return;
-    }
-
-    try {
-      console.log("Starting bull token purchase...", {
-        amount,
-        vault: vault.id,
-      });
-
-      const assetId =
-        "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b";
-      const amountInMist = BigInt(amount * 1_000_000_000);
-
-      const suiClient = new SuiClient({
-        url: "https://fullnode.testnet.sui.io:443",
-      });
-
-      // Check balance
-      const coins = await suiClient.getCoins({
-        owner: account.address,
-        coinType: "0x2::sui::SUI",
-      });
-
-      const totalBalance = coins.data.reduce(
-        (sum, coin) => sum + BigInt(coin.balance),
-        0n
-      );
-      if (totalBalance < amountInMist + BigInt(200_000_000)) {
-        throw new Error(
-          `Insufficient balance. Required: ${amountInMist.toString()}, Available: ${totalBalance.toString()}`
-        );
-      }
-
-      // Step 1: Update Pyth price using reusable function
-      const { suiPriceObjectId, updateResult } = await updatePythPrice([
-        assetId,
-      ]);
-
-      // Step 2: Purchase bull token
-      const tx = new Transaction();
-      tx.moveCall({
-        target: `${PACKAGE_ID}::prediction_pool::purchase_token`,
-        arguments: [
-          tx.object(vault.id),
-          tx.pure.bool(true), // true for bull token
-          tx.object(suiPriceObjectId),
-          tx.object(CLOCK_ID),
-          tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)]),
-        ],
-      });
-
-      tx.setGasBudget(100_000_000);
-      console.log("Executing purchase transaction...");
-      const result = await signAndExecuteTransaction({ transaction: tx });
-
-      console.log("Transaction result:", result);
-
-      alert("Bull token purchase successful!");
-      window.location.reload();
-    } catch (error: any) {
-      console.error("Buy bull failed:", error);
-
-      let errorMessage = "Unknown error occurred";
-      if (error.message?.includes("InsufficientGas")) {
-        errorMessage =
-          "Transaction failed: Insufficient gas. Please try again with a higher gas budget.";
-      } else if (error.message?.includes("InsufficientBalance")) {
-        errorMessage = "Insufficient SUI balance for this transaction.";
-      } else if (error.message?.includes("price")) {
-        errorMessage =
-          "Transaction failed: Price feed error. Please try again.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      alert(`Bull token purchase failed: ${errorMessage}`);
-    }
   };
 
-  const handleBuyBear = async (amount: number) => {
-    if (!amount || amount <= 0 || !account?.address) {
-      alert("Please enter a valid amount and connect your wallet");
-      return;
-    }
-
-    const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
-    const CLOCK_ID =
-      "0x0000000000000000000000000000000000000000000000000000000000000006";
-
-    if (!PACKAGE_ID) {
-      alert("Missing PACKAGE_ID in environment variables");
-      return;
-    }
-
-    try {
-      console.log("Starting bull token purchase...", {
-        amount,
-        vault: vault.id,
-      });
-
-      const assetId =
-        "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b";
-      const amountInMist = BigInt(amount * 1_000_000_000);
-
-      const suiClient = new SuiClient({
-        url: "https://fullnode.testnet.sui.io:443",
-      });
-
-      // Check balance
-      const coins = await suiClient.getCoins({
-        owner: account.address,
-        coinType: "0x2::sui::SUI",
-      });
-
-      const totalBalance = coins.data.reduce(
-        (sum, coin) => sum + BigInt(coin.balance),
-        0n
-      );
-      if (totalBalance < amountInMist + BigInt(200_000_000)) {
-        throw new Error(
-          `Insufficient balance. Required: ${amountInMist.toString()}, Available: ${totalBalance.toString()}`
-        );
-      }
-
-      // Step 1: Update Pyth price using reusable function
-      const { suiPriceObjectId } = await updatePythPrice([assetId]);
-
-      // Step 2: Purchase bull token
-      const tx = new Transaction();
-      tx.moveCall({
-        target: `${PACKAGE_ID}::prediction_pool::purchase_token`,
-        arguments: [
-          tx.object(vault.id),
-          tx.pure.bool(false), // false for bear token
-          tx.object(suiPriceObjectId),
-          tx.object(CLOCK_ID),
-          tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)]),
-        ],
-      });
-
-      tx.setGasBudget(100_000_000);
-      console.log("Executing purchase transaction...");
-      const result = await signAndExecuteTransaction({ transaction: tx });
-
-      console.log("Transaction result:", result);
-
-      alert("Bull token purchase successful!");
-      window.location.reload();
-    } catch (error: any) {
-      console.error("Buy bull failed:", error);
-
-      let errorMessage = "Unknown error occurred";
-      if (error.message?.includes("InsufficientGas")) {
-        errorMessage =
-          "Transaction failed: Insufficient gas. Please try again with a higher gas budget.";
-      } else if (error.message?.includes("InsufficientBalance")) {
-        errorMessage = "Insufficient SUI balance for this transaction.";
-      } else if (error.message?.includes("price")) {
-        errorMessage =
-          "Transaction failed: Price feed error. Please try again.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      alert(`Bull token purchase failed: ${errorMessage}`);
-    }
+  const handleSellBull = (amount: number) => {
+    sellTokens({
+      amount,
+      isBull: true,
+      vaultId: vault.id,
+      assetId: "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b"
+    });
   };
 
-  const handleSellBull = async (amount: number) => {
-    if (!amount || amount <= 0 || !account?.address) {
-      alert("Please enter a valid amount and connect your wallet");
-      return;
-    }
-
-    const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
-    const CLOCK_ID =
-      "0x0000000000000000000000000000000000000000000000000000000000000006";
-
-    if (!PACKAGE_ID) {
-      alert("Missing PACKAGE_ID in environment variables");
-      return;
-    }
-
-    try {
-      console.log("Starting bull token sale...", {
-        amount,
-        vault: vault.id,
-      });
-
-      const assetId =
-        "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b";
-
-      // Convert amount to token units (assuming same precision as your buy function)
-      const tokenAmount = BigInt(Math.floor(amount * 1_000_000_000));
-
-      const suiClient = new SuiClient({
-        url: "https://fullnode.testnet.sui.io:443",
-      });
-
-      // Optional: Check if user has enough tokens to sell
-      // You might want to implement token balance checking here similar to SUI balance check in buy function
-
-      // Step 1: Update Pyth price using the same reusable function
-      const { suiPriceObjectId, updateResult } = await updatePythPrice([
-        assetId,
-      ]);
-
-      // Step 2: Sell bull token
-      const tx = new Transaction();
-      tx.moveCall({
-        target: `${PACKAGE_ID}::prediction_pool::redeem_token`,
-        arguments: [
-          tx.object(vault.id),
-          tx.pure.bool(true), // true for bull token
-          tx.pure.u64(tokenAmount),
-          tx.object(suiPriceObjectId), // Required price_info_object
-          tx.object(CLOCK_ID), // Required clock
-        ],
-      });
-
-      tx.setGasBudget(100_000_000);
-      console.log("Executing sell transaction...");
-      const result = await signAndExecuteTransaction({ transaction: tx });
-
-      console.log("Transaction result:", result);
-
-      alert("Bull token sale successful!");
-      window.location.reload();
-    } catch (error: any) {
-      console.error("Sell bull failed:", error);
-
-      let errorMessage = "Unknown error occurred";
-      if (error.message?.includes("InsufficientGas")) {
-        errorMessage =
-          "Transaction failed: Insufficient gas. Please try again with a higher gas budget.";
-      } else if (error.message?.includes("InsufficientBalance")) {
-        errorMessage = "Insufficient token balance for this transaction.";
-      } else if (error.message?.includes("price")) {
-        errorMessage =
-          "Transaction failed: Price feed error. Please try again.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      alert(`Bull token sale failed: ${errorMessage}`);
-    }
-  };
-
-  // Similarly, here's the bear token sell function
-  const handleSellBear = async (amount: number) => {
-    if (!amount || amount <= 0 || !account?.address) {
-      alert("Please enter a valid amount and connect your wallet");
-      return;
-    }
-
-    const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
-    const CLOCK_ID =
-      "0x0000000000000000000000000000000000000000000000000000000000000006";
-
-    if (!PACKAGE_ID) {
-      alert("Missing PACKAGE_ID in environment variables");
-      return;
-    }
-
-    try {
-      console.log("Starting bear token sale...", {
-        amount,
-        vault: vault.id,
-      });
-
-      const assetId =
-        "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b";
-      const tokenAmount = BigInt(Math.floor(amount * 1_000_000_000));
-
-      const suiClient = new SuiClient({
-        url: "https://fullnode.testnet.sui.io:443",
-      });
-
-      // Step 1: Update Pyth price
-      const { suiPriceObjectId, updateResult } = await updatePythPrice([
-        assetId,
-      ]);
-
-      // Step 2: Sell bear token
-      const tx = new Transaction();
-      tx.moveCall({
-        target: `${PACKAGE_ID}::prediction_pool::redeem_token`,
-        arguments: [
-          tx.object(vault.id),
-          tx.pure.bool(false), // false for bear token
-          tx.pure.u64(tokenAmount),
-          tx.object(suiPriceObjectId),
-          tx.object(CLOCK_ID),
-        ],
-      });
-
-      tx.setGasBudget(100_000_000);
-      console.log("Executing sell transaction...");
-      const result = await signAndExecuteTransaction({ transaction: tx });
-
-      console.log("Transaction result:", result);
-
-      alert("Bear token sale successful!");
-      window.location.reload();
-    } catch (error: any) {
-      console.error("Sell bear failed:", error);
-
-      let errorMessage = "Unknown error occurred";
-      if (error.message?.includes("InsufficientGas")) {
-        errorMessage =
-          "Transaction failed: Insufficient gas. Please try again with a higher gas budget.";
-      } else if (error.message?.includes("InsufficientBalance")) {
-        errorMessage = "Insufficient token balance for this transaction.";
-      } else if (error.message?.includes("price")) {
-        errorMessage =
-          "Transaction failed: Price feed error. Please try again.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      alert(`Bear token sale failed: ${errorMessage}`);
-    }
-  };
-
-  const handleDistribute = async () => {
-    if (!account?.address) {
-      alert("Please connect your wallet");
-      return;
-    }
-
-    const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
-    const CLOCK_ID =
-      "0x0000000000000000000000000000000000000000000000000000000000000006";
-
-    if (!PACKAGE_ID) {
-      alert("Missing PACKAGE_ID in environment variables");
-      return;
-    }
-
-    // // Check if user is the vault creator
-    // if (account.address !== vault.vault_creator) {
-    //   alert("Only the vault creator can settle outcomes : " + JSON.stringify(vault));
-    //   return;
-    // }
-
-    try {
-      console.log("Starting outcome settlement...", {
-        vault: vault.id,
-        creator: vault.vault_creator,
-      });
-
-      const assetId =
-        "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b";
-
-      const suiClient = new SuiClient({
-        url: "https://fullnode.testnet.sui.io:443",
-      });
-
-      // Check balance for gas
-      const coins = await suiClient.getCoins({
-        owner: account.address,
-        coinType: "0x2::sui::SUI",
-      });
-
-      const totalBalance = coins.data.reduce(
-        (sum, coin) => sum + BigInt(coin.balance),
-        0n
-      );
-      if (totalBalance < BigInt(200_000_000)) {
-        throw new Error(
-          `Insufficient balance for gas. Required: 200000000, Available: ${totalBalance.toString()}`
-        );
-      }
-
-      // Step 1: Update Pyth price using reusable function
-      const { suiPriceObjectId } = await updatePythPrice([assetId]);
-
-      console.log("Price updated, settling outcome...");
-
-      // Step 2: Settle outcome
-      const tx = new Transaction();
-      tx.moveCall({
-        target: `${PACKAGE_ID}::prediction_pool::settle_outcome_entry`,
-        arguments: [
-          tx.object(vault.id), // The prediction pool object
-          tx.object(suiPriceObjectId), // Pyth price info object
-          tx.object(CLOCK_ID), // Clock object
-        ],
-      });
-
-      tx.setGasBudget(100_000_000);
-
-      console.log("Executing settlement transaction...");
-      const result = await signAndExecuteTransaction({ transaction: tx });
-
-      console.log("Settlement result:", result);
-      alert("Outcome settlement successful!");
-      window.location.reload();
-    } catch (error: any) {
-      console.error("Settle outcome failed:", error);
-
-      let errorMessage = "Unknown error occurred";
-      if (error.message?.includes("InsufficientGas")) {
-        errorMessage =
-          "Transaction failed: Insufficient gas. Please try again with a higher gas budget.";
-      } else if (error.message?.includes("InsufficientBalance")) {
-        errorMessage = "Insufficient SUI balance for this transaction.";
-      } else if (error.message?.includes("EUnauthorized")) {
-        errorMessage =
-          "Transaction failed: Only the pool creator can settle outcomes.";
-      } else if (error.message?.includes("price")) {
-        errorMessage =
-          "Transaction failed: Price feed error. Please try again.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      alert(`Outcome settlement failed: ${errorMessage}`);
-    }
+  const handleSellBear = (amount: number) => {
+    sellTokens({
+      amount,
+      isBull: false,
+      vaultId: vault.id,
+      assetId: "0xf9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b"
+    });
   };
 
   return (
@@ -784,7 +324,13 @@ export default function DualTokenVault({ tokens, vault }: DualTokenVaultProps) {
             <div className="mt-8 flex justify-center">
               <button
                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl font-medium flex items-center"
-                onClick={handleDistribute}
+                onClick={() =>
+                  distribute({
+                    ...vault,
+                    pool_creator: vault.vault_creator,
+                    assetId: vault.asset_id,
+                  })
+                }
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

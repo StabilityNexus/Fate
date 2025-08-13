@@ -1,7 +1,7 @@
 const navLinks = [
-  { label: "Explore", href: "/explorePools" },
-  { label: "About", href: "/#Contact" },
-  { label: "Learn More", href: "/#Contact" },
+  { label: "Home", href: "/" },
+  { label: "Explore", href: "/predictionPool" },
+  { label: "Create", href: "/predictionPool/create" },
 ];
 
 export default navLinks;

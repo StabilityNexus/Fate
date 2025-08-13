@@ -75,7 +75,7 @@ const Navbar = () => {
                   <li key={label}>
                     <Link
                       href={href}
-                      className="block py-2 hover:text-blue-600 dark:text-white"
+                      className="block py-2 hover:text-gray-600 dark:text-white"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {label}

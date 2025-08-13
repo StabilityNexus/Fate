@@ -23,39 +23,7 @@ import { useSellTokens } from "@/fateHooks/useSellTokens";
 import { useDistribute } from "@/fateHooks/useDistribute";
 import { usePool } from "@/fateHooks/usePool";
 import Footer from "@/components/layout/Footer";
-
-interface Token {
-  id: string;
-  name: string;
-  symbol: string;
-  balance: number;
-  price: number;
-  pool_creator: string;
-  pool_fee: number;
-  pool_creator_fee: number;
-  treasury_fee: number;
-  asset_balance: number;
-  supply: number;
-  prediction_pool: string;
-  other_token: string;
-}
-
-interface Pool {
-  id: string;
-  asset_id: string;
-  bullToken: Token;
-  bearToken: Token;
-  bullPercentage: number;
-  bearPercentage: number;
-  totalValue: number;
-  previous_price: number;
-  pool_creator: string;
-  fees: {
-    entry: number;
-    exit: number;
-    performance: number;
-  };
-}
+import { UserData } from "@/types/User";
 
 interface PoolData {
   id: string;
@@ -71,11 +39,6 @@ interface PoolData {
   bear_price: number;
   vault_creator_fee: number;
   treasury_fee: number;
-}
-
-interface UserData {
-  bull_tokens: number;
-  bear_tokens: number;
 }
 
 export default function PredictionPoolDashboard() {

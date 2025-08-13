@@ -7,47 +7,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { SuiClient } from "@mysten/sui/client";
 import { useRouter } from "next/navigation";
-
-interface Token {
-  id: string;
-  name: string;
-  symbol: string;
-  balance: number;
-  price: number;
-  vault_creator: string;
-  vault_fee: number;
-  vault_creator_fee: number;
-  treasury_fee: number;
-  asset_balance: number;
-  supply: number;
-  prediction_pool: string;
-  other_token: string;
-}
-
-interface Pool {
-  id: string;
-  name: string;
-  description: string;
-  current_price: number;
-  asset_id: string;
-  creator: string;
-  bullPercentage: number;
-  bearPercentage: number;
-  bull_reserve: number;
-  bear_reserve: number;
-  bullToken?: Token;
-  bearToken?: Token;
-  volume?: string;
-  participants?: number;
-  created_at?: number;
-}
-
-interface PoolCreatedEvent {
-  pool_id: string;
-  name: string;
-  creator: string;
-  initial_price: number;
-}
+import { Token } from "@/types/Token";
+import { Pool, PoolCreatedEvent } from "@/types/Pool";
 
 const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
 

@@ -2,7 +2,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { PredictionCard } from "@/components/FatePoolCard/FatePoolCard";
-import { Search, Plus } from "lucide-react";
+import { Search } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { SuiClient } from "@mysten/sui/client";
@@ -16,33 +16,34 @@ const ExploreFatePools = () => {
   const [pools, setPools] = useState<Pool[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const client = useMemo(() => new SuiClient({
-    url: 'https://fullnode.testnet.sui.io',
-  }), []);
+  const client = useMemo(
+    () =>
+      new SuiClient({
+        url: "https://fullnode.testnet.sui.io",
+      }),
+    []
+  );
 
   useEffect(() => {
     const fetchPredictionPools = async () => {
       if (!PACKAGE_ID) {
         console.warn("Missing NEXT_PUBLIC_PACKAGE_ID in env");
-        setError("Missing package configuration");
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        setError(null);
 
         // Method 1: Query PoolCreated events (Primary approach)
         const poolCreatedEvents = await queryPoolCreatedEvents();
-        
+
         // Method 2: Fallback - Query objects by type if events fail
         let poolIds: string[] = [];
-        
+
         if (poolCreatedEvents.length > 0) {
-          poolIds = poolCreatedEvents.map(event => event.pool_id);
+          poolIds = poolCreatedEvents.map((event) => event.pool_id);
         } else {
           console.log("No events found, falling back to object query...");
           poolIds = await queryPoolsByObjectType();
@@ -69,15 +70,16 @@ const ExploreFatePools = () => {
         );
 
         // Filter out failed fetches
-        const validPools = enrichedPools.filter((pool): pool is Pool => pool !== null);
-        
+        const validPools = enrichedPools.filter(
+          (pool): pool is Pool => pool !== null
+        );
+
         // Sort by creation time (newest first)
         validPools.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
-        
+
         setPools(validPools);
       } catch (err) {
         console.error("Error fetching prediction pools:", err);
-        setError("Failed to fetch prediction pools. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -87,22 +89,22 @@ const ExploreFatePools = () => {
     const queryPoolCreatedEvents = async (): Promise<PoolCreatedEvent[]> => {
       try {
         const eventType = `${PACKAGE_ID}::prediction_pool::PoolCreated`;
-        
+
         const eventsResponse = await client.queryEvents({
           query: { MoveEventType: eventType },
           limit: 50,
-          order: 'descending'
+          order: "descending",
         });
 
         const events: PoolCreatedEvent[] = eventsResponse.data
-          .map(event => {
-            if (event.parsedJson && typeof event.parsedJson === 'object') {
+          .map((event) => {
+            if (event.parsedJson && typeof event.parsedJson === "object") {
               const parsed = event.parsedJson as any;
               return {
                 pool_id: parsed.pool_id,
                 name: parsed.name,
                 creator: parsed.creator,
-                initial_price: parsed.initial_price
+                initial_price: parsed.initial_price,
               };
             }
             return null;
@@ -121,18 +123,18 @@ const ExploreFatePools = () => {
     const queryPoolsByObjectType = async (): Promise<string[]> => {
       try {
         const PREDICTION_POOL_TYPE = `${PACKAGE_ID}::prediction_pool::PredictionPool`;
-        
+
         // Query recent transactions that might have created pools
         const txnResponse = await client.queryTransactionBlocks({
-          filter: { 
-            MoveFunction: { 
-              package: PACKAGE_ID || '',
-              module: 'prediction_pool',
-              function: 'create_pool'
-            } 
+          filter: {
+            MoveFunction: {
+              package: PACKAGE_ID || "",
+              module: "prediction_pool",
+              function: "create_pool",
+            },
           },
           options: { showObjectChanges: true },
-          order: 'descending'
+          order: "descending",
         });
 
         const poolIds: string[] = [];
@@ -160,8 +162,19 @@ const ExploreFatePools = () => {
     };
 
     // Fetch detailed pool information
+    const bytesToHex0x = (arr?: number[] | string) => {
+      if (!arr) return "";
+      if (typeof arr === "string") return arr; // already hex
+      return "0x" + arr.map((b) => b.toString(16).padStart(2, "0")).join("");
+    };
+
+    const toIntSafe = (v: any, def = 0) => {
+      const n = typeof v === "string" ? parseInt(v, 10) : Number(v);
+      return Number.isFinite(n) ? n : def;
+    };
+
     const fetchPoolDetails = async (
-      poolId: string, 
+      poolId: string,
       eventData?: PoolCreatedEvent
     ): Promise<Pool | null> => {
       try {
@@ -170,73 +183,86 @@ const ExploreFatePools = () => {
           options: { showContent: true },
         });
 
-        if (!response.data?.content || !('fields' in response.data.content)) {
+        if (!response.data?.content || !("fields" in response.data.content)) {
           console.warn(`No content found for pool ${poolId}`);
           return null;
         }
 
         const poolFields = (response.data.content as any).fields;
+        console.log(
+          `Fetched pool fields for ${poolId}:`,
+          JSON.stringify(poolFields)
+        );
 
-        // Extract basic pool info
-        const poolName = poolFields.name || eventData?.name || `Pool ${poolId.slice(-8)}`;
+        // Basic pool info
+        const poolName =
+          poolFields.name || eventData?.name || `Pool ${poolId.slice(-8)}`;
         const description = poolFields.description || "";
-        const currentPrice = parseInt(poolFields.current_price || "0");
-        const assetId = poolFields.asset_id || "";
+        const currentPrice = toIntSafe(poolFields.current_price, 0);
+
+        // Prefer asset_address (already hex), else convert asset_id (bytes[]) to hex
+        const assetAddress: string =
+          poolFields.asset_address || bytesToHex0x(poolFields.asset_id) || "";
+
         const creator = poolFields.pool_creator || eventData?.creator || "";
 
-        // Get reserve balances
-        const bullReserve = parseInt(poolFields.bull_reserve?.fields?.value || "0");
-        const bearReserve = parseInt(poolFields.bear_reserve?.fields?.value || "0");
+        // Reserves (strings → numbers)
+        const bullReserve = toIntSafe(poolFields.bull_reserve, 0);
+        const bearReserve = toIntSafe(poolFields.bear_reserve, 0);
         const totalReserve = bullReserve + bearReserve;
 
-        // Calculate percentages
-        const bullPercentage = totalReserve > 0 ? (bullReserve / totalReserve) * 100 : 50;
+        // Percentages
+        const bullPercentage =
+          totalReserve > 0 ? (bullReserve / totalReserve) * 100 : 50;
         const bearPercentage = 100 - bullPercentage;
 
-        // Try to get token information if available
+        // Token info
         let bullToken: Token | undefined;
         let bearToken: Token | undefined;
 
         try {
           if (poolFields.bull_token?.fields) {
-            const bullTokenFields = poolFields.bull_token.fields;
+            const f = poolFields.bull_token.fields;
             bullToken = {
-              id: bullTokenFields.id?.id || "",
-              name: bullTokenFields.name || "Bull Token",
-              symbol: bullTokenFields.symbol || "BULL",
-              balance: parseInt(bullTokenFields.supply || "0"),
+              id: f.id?.id || "",
+              name: f.name || "Bull Token",
+              symbol: f.symbol || "BULL",
+              balance: toIntSafe(f.total_supply, 0),
               price: 1,
               vault_creator: creator,
               vault_fee: 0,
               vault_creator_fee: 0,
               treasury_fee: 0,
               asset_balance: bullReserve,
-              supply: parseInt(bullTokenFields.supply || "0"),
+              supply: toIntSafe(f.total_supply, 0),
               prediction_pool: poolId,
               other_token: "",
             };
           }
 
           if (poolFields.bear_token?.fields) {
-            const bearTokenFields = poolFields.bear_token.fields;
+            const f = poolFields.bear_token.fields;
             bearToken = {
-              id: bearTokenFields.id?.id || "",
-              name: bearTokenFields.name || "Bear Token",
-              symbol: bearTokenFields.symbol || "BEAR",
-              balance: parseInt(bearTokenFields.supply || "0"),
+              id: f.id?.id || "",
+              name: f.name || "Bear Token",
+              symbol: f.symbol || "BEAR",
+              balance: toIntSafe(f.total_supply, 0),
               price: 1,
               vault_creator: creator,
               vault_fee: 0,
               vault_creator_fee: 0,
               treasury_fee: 0,
               asset_balance: bearReserve,
-              supply: parseInt(bearTokenFields.supply || "0"),
+              supply: toIntSafe(f.total_supply, 0),
               prediction_pool: poolId,
               other_token: "",
             };
           }
         } catch (tokenErr) {
-          console.warn(`Could not fetch token details for pool ${poolId}:`, tokenErr);
+          console.warn(
+            `Could not map token details for pool ${poolId}:`,
+            tokenErr
+          );
         }
 
         const pool: Pool = {
@@ -244,7 +270,7 @@ const ExploreFatePools = () => {
           name: poolName,
           description,
           current_price: currentPrice,
-          asset_id: assetId,
+          asset_id: assetAddress,
           creator,
           bullPercentage,
           bearPercentage,
@@ -265,10 +291,11 @@ const ExploreFatePools = () => {
     fetchPredictionPools();
   }, [client]);
 
-  const filteredPools = pools.filter((pool) =>
-    pool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pool.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pool.creator.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPools = pools.filter(
+    (pool) =>
+      pool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      pool.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      pool.creator.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -276,24 +303,6 @@ const ExploreFatePools = () => {
       <Navbar />
       <div className="min-h-screen bg-gradient-to-r from-gray-100 to-gray-300 dark:from-gray-800 dark:to-gray-900 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-12 mt-10">
-            <div>
-              <h1 className="text-4xl font-bold text-black dark:text-white mb-2">
-                Explore Fate Pools
-              </h1>
-              {error && (
-                <p className="text-red-500 dark:text-red-400 mt-2">{error}</p>
-              )}
-            </div>
-            <button
-              className="mt-4 md:mt-0 flex items-center gap-2 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all transform hover:scale-105 dark:bg-white dark:text-black shadow-md"
-              onClick={() => router.push('/createPool')}
-            >
-              <Plus size={20} />
-              Create New Pool
-            </button>
-          </div>
-
           <div className="mb-8">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-gray-800/50 rounded-xl p-6 shadow-lg">
               <div className="relative w-full md:w-auto ">
@@ -342,31 +351,31 @@ const ExploreFatePools = () => {
                 <div key={pool.id} className="group">
                   <PredictionCard
                     name={pool.name}
+                    description={pool.description}
                     bullPercentage={pool.bullPercentage}
                     bearPercentage={pool.bearPercentage}
-                    bullCoinName={pool.bullToken?.name || "Bull Token"}
                     bullCoinSymbol={pool.bullToken?.symbol || "BULL"}
-                    bearCoinName={pool.bearToken?.name || "Bear Token"}
                     bearCoinSymbol={pool.bearToken?.symbol || "BEAR"}
                     onUse={() => {
-                      router.push(`/predictionPool/${encodeURIComponent(pool.id)}`)
+                      router.push(
+                        `/predictionPool/${encodeURIComponent(pool.id)}`
+                      );
                     }}
-                  />                  
+                  />
                 </div>
               ))
             ) : (
               <div className="col-span-full text-center py-12">
                 <div className="bg-white dark:bg-gray-800/50 rounded-xl p-8 shadow-lg">
                   <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
-                    {searchQuery 
-                      ? `No pools found matching "${searchQuery}"` 
-                      : "No prediction pools found"
-                    }
+                    {searchQuery
+                      ? `No pools found matching "${searchQuery}"`
+                      : "No prediction pools found"}
                   </p>
                   {!searchQuery && (
                     <button
                       className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all dark:bg-white dark:text-black"
-                      onClick={() => router.push('/createPool')}
+                      onClick={() => router.push("/createPool")}
                     >
                       Create the First Pool
                     </button>

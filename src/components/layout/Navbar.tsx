@@ -50,12 +50,8 @@ const Navbar = () => {
               <X className="w-8 h-8" />
             ) : (
               <Menu
-                className="w-8 h-8 fill-current text-black dark:text-white"
-                style={
-                  resolvedTheme == "dark"
-                    ? { color: "white" }
-                    : { color: "black" }
-                }
+                className="w-8 h-8 fill-current text-black"
+                style={{ color: "black" }}
               />
             )}
           </button>
@@ -64,10 +60,10 @@ const Navbar = () => {
 
         {isMenuOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-70 z-10 flex items-center justify-center">
-            <nav className="bg-white dark:bg-gray-800 p-8 rounded-lg w-4/5 max-w-md shadow-lg relative">
+            <nav className="bg-white p-8 rounded-lg w-4/5 max-w-md shadow-lg relative">
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="absolute top-4 right-4 hover:bg-gray-300 dark:hover:bg-gray-600 text-black dark:text-white font-bold py-2 px-4 rounded"
+                className="absolute top-4 right-4 hover:bg-gray-300 text-black font-bold py-2 px-4 rounded"
               >
                 <X className="w-8 h-8" />
               </button>
@@ -102,11 +98,11 @@ const Navbar = () => {
           </div>
         )}
         <nav
-          className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-8 text-md text-center px-8 py-2 rounded-full bg-opacity-[10%] bg-black dark:bg-white dark:bg-opacity-[20%] dark:text-white"
+          className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-8 text-md text-center px-8 py-2 rounded-full bg-opacity-[10%] bg-black"
           style={{ fontFamily: "var(--font-bebas-nueue)" }}
         >
           {navLinks.map(({ label, href }) => (
-            <Link key={label} href={href} className="hover:text-blue-600">
+            <Link key={label} href={href} className="hover:text-gray-600">
               {label}
             </Link>
           ))}

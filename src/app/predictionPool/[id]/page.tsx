@@ -168,11 +168,11 @@ export default function PredictionPoolDashboard() {
     : null;
 
   const formatTokens = (amount: number) => {
-    return (amount / 1000000000).toFixed(4);
+    return safeNumber((amount / 1000000000).toFixed(9), 0);
   };
 
   const formatValue = (value: number) => {
-    return `$${(value / 1000000000).toFixed(4)}`;
+    return `$${safeNumber(value / 1000000000, 0).toFixed(9)}`;
   };
 
   const handleBuyBull = async () => {
@@ -268,6 +268,9 @@ export default function PredictionPoolDashboard() {
       setIsLoading(false);
     }
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const safeNumber = (num: any, fallback = 1) =>
+    !isFinite(num) || isNaN(num) ? fallback : num;
 
   if (loading) {
     return (
@@ -374,7 +377,7 @@ export default function PredictionPoolDashboard() {
                       </span>
                       <div className="flex items-center space-x-2">
                         <span className="font-semibold">
-                          {(poolData.bull_reserve / 1000000000).toFixed(8)} SUI
+                          {(poolData.bull_reserve / 1000000000).toFixed(9)} SUI
                         </span>
                       </div>
                     </div>
@@ -384,7 +387,7 @@ export default function PredictionPoolDashboard() {
                       </span>
                       <div className="flex items-center space-x-2">
                         <span className="font-semibold">
-                          {(poolData.bear_reserve / 1000000000).toFixed(8)} SUI
+                          {(poolData.bear_reserve / 1000000000).toFixed(9)} SUI
                         </span>
                       </div>
                     </div>
@@ -393,7 +396,7 @@ export default function PredictionPoolDashboard() {
                         Bull Supply
                       </span>
                       <span className="font-semibold">
-                        {(poolData.bull_supply / 1000000000).toFixed(8)}{" "}
+                        {(poolData.bull_supply / 1000000000).toFixed(9)}{" "}
                         {pool?.bull_token?.fields?.symbol || "BULL"}
                       </span>
                     </div>
@@ -402,7 +405,7 @@ export default function PredictionPoolDashboard() {
                         Bear Supply
                       </span>
                       <span className="font-semibold">
-                        {(poolData.bear_supply / 1000000000).toFixed(8)}{" "}
+                        {(poolData.bear_supply / 1000000000).toFixed(9)}{" "}
                         {pool?.bear_token?.fields?.symbol || "BEAR"}
                       </span>
                     </div>
@@ -414,13 +417,11 @@ export default function PredictionPoolDashboard() {
                         Bull Price
                       </span>
                       <span className="font-semibold text-green-600">
-                        {poolData.bull_supply
-                          ? (
-                              poolData.bull_reserve /
-                              1e9 /
-                              (poolData.bull_supply / 1e9)
-                            ).toFixed(8)
-                          : 1}{" "}
+                        {safeNumber(
+                          poolData.bull_reserve /
+                            1e9 /
+                            (poolData.bull_supply / 1e9)
+                        ).toFixed(9)}{" "}
                         SUI
                       </span>
                     </div>
@@ -429,13 +430,11 @@ export default function PredictionPoolDashboard() {
                         Bear Price
                       </span>
                       <span className="font-semibold text-red-600">
-                        {poolData.bear_supply
-                          ? (
-                              poolData.bear_reserve /
-                              1e9 /
-                              (poolData.bear_supply / 1e9)
-                            ).toFixed(8)
-                          : 1}{" "}
+                        {safeNumber(
+                          poolData.bear_reserve /
+                            1e9 /
+                            (poolData.bear_supply / 1e9)
+                        ).toFixed(9)}{" "}
                         SUI
                       </span>
                     </div>
@@ -502,7 +501,7 @@ export default function PredictionPoolDashboard() {
                           Your Bull Tokens
                         </span>
                         <span className="text-lg font-bold text-green-600">
-                          {(userData.bull_tokens / 1e9).toFixed(8)}
+                          {(userData.bull_tokens / 1e9).toFixed(9)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -510,23 +509,24 @@ export default function PredictionPoolDashboard() {
                           Estimated Price
                         </span>
                         <span className="text-lg font-bold">
-                          {(
+                          {safeNumber(
                             poolData.bull_reserve /
-                            1e9 /
-                            (poolData.bull_supply / 1e9)
-                          ).toFixed(8)}{" "}
+                              1e9 /
+                              (poolData.bull_supply / 1e9)
+                          ).toFixed(9)}{" "}
                           SUI
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">Total Value</span>
                         <span className="text-lg font-bold text-green-600">
-                          {(
+                          {safeNumber(
                             (userData.bull_tokens / 1e9) *
-                            (poolData.bull_reserve /
-                              1e9 /
-                              (poolData.bull_supply / 1e9))
-                          ).toFixed(8)}
+                              (poolData.bull_reserve /
+                                1e9 /
+                                (poolData.bull_supply / 1e9),
+                              0)
+                          ).toFixed(9)}
                         </span>
                       </div>
                     </div>
@@ -594,7 +594,7 @@ export default function PredictionPoolDashboard() {
                           Your Bear Tokens
                         </span>
                         <span className="text-lg font-bold text-red-600">
-                          {(userData.bear_tokens / 1e9).toFixed(8)}
+                          {(userData.bear_tokens / 1e9).toFixed(9)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
@@ -602,23 +602,24 @@ export default function PredictionPoolDashboard() {
                           Estimated Price
                         </span>
                         <span className="text-lg font-bold">
-                          {(
+                          {safeNumber(
                             poolData.bear_reserve /
-                            1e9 /
-                            (poolData.bear_supply / 1e9)
-                          ).toFixed(8)}{" "}
+                              1e9 /
+                              (poolData.bear_supply / 1e9)
+                          ).toFixed(9)}{" "}
                           SUI
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">Total Value</span>
                         <span className="text-lg font-bold text-red-600">
-                          {(
+                          {safeNumber(
                             (userData.bear_tokens / 1e9) *
-                            (poolData.bear_reserve /
-                              1e9 /
-                              (poolData.bear_supply / 1e9))
-                          ).toFixed(8)}
+                              (poolData.bear_reserve /
+                                1e9 /
+                                (poolData.bear_supply / 1e9)),
+                            0
+                          ).toFixed(9)}
                         </span>
                       </div>
                     </div>
@@ -752,16 +753,17 @@ export default function PredictionPoolDashboard() {
                     Your Portfolio Value
                   </span>
                   <span className="font-bold text-blue-600">
-                    {(
+                    {safeNumber(
                       (userData.bull_tokens / 1e9) *
                         (poolData.bull_reserve /
                           1e9 /
                           (poolData.bull_supply / 1e9)) +
-                      (userData.bear_tokens / 1e9) *
-                        (poolData.bear_reserve /
-                          1e9 /
-                          (poolData.bear_supply / 1e9))
-                    ).toFixed(8)}{" "}
+                        (userData.bear_tokens / 1e9) *
+                          (poolData.bear_reserve /
+                            1e9 /
+                            (poolData.bear_supply / 1e9)),
+                      0
+                    ).toFixed(9)}{" "}
                     SUI
                   </span>
                 </div>

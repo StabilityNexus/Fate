@@ -682,27 +682,23 @@ export default function PredictionPoolDashboard() {
             </div>
 
             {/* Settle Outcome */}
-            {pool?.pool_creator === account?.address ? (
-              <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
-                <h3 className="font-semibold mb-2">
-                  Settle Prediction Outcome
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  Distribute rewards based on the outcome.
-                </p>
-                <Button
-                  variant="outline"
-                  className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                  onClick={handleDistribute}
-                  disabled={isLoading || !connected}
-                >
-                  {isLoading ? (
-                    <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                  ) : null}
-                  Settle Outcome
-                </Button>
-              </div>
-            ) : null}
+           {pool?.pool_creator === account?.address ? <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
+              <h3 className="font-semibold mb-2">Settle Prediction Outcome</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Distribute rewards based on the outcome.
+              </p>
+              <Button
+                variant="outline"
+                className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                onClick={handleDistribute}
+                disabled={isLoading || !connected}
+              >
+                {isLoading ? (
+                  <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                ) : null}
+                Settle Outcome
+              </Button>
+            </div>: null}
 
             {/* Pool Statistics */}
             <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">

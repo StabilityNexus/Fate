@@ -48,7 +48,7 @@ export default function PredictionPoolDashboard() {
   const { theme } = useTheme();
   const params = useParams();
   const { account, connected } = useWallet();
-  const { pool, userBalances, loading, error } = usePool(
+  const { pool, userBalances, userAvgPrices, loading, error } = usePool(
     params?.id as string,
     account?.address as string
   );
@@ -172,7 +172,7 @@ export default function PredictionPoolDashboard() {
   };
 
   const formatValue = (value: number) => {
-    return `$${safeNumber(value / 1000000000, 0).toFixed(9)}`;
+    return `${safeNumber(value / 1000000000, 0).toFixed(9)} SUI`;
   };
 
   const handleBuyBull = async () => {
@@ -272,6 +272,23 @@ export default function PredictionPoolDashboard() {
   const safeNumber = (num: any, fallback = 1) =>
     !isFinite(num) || isNaN(num) ? fallback : num;
 
+  const userBullReturns = safeNumber(
+    (((userData.bull_tokens / 1e9) *
+      (poolData.bull_reserve / 1e9 / (poolData.bull_supply / 1e9)) -
+      (userData.bull_tokens / 1e9) * userAvgPrices.bull_avg_price) /
+      ((userData.bull_tokens / 1e9) * userAvgPrices.bull_avg_price)) *
+      100,
+    0
+  );
+  const userBearReturns = safeNumber(
+    (((userData.bear_tokens / 1e9) *
+      (poolData.bear_reserve / 1e9 / (poolData.bear_supply / 1e9)) -
+      (userData.bear_tokens / 1e9) * userAvgPrices.bear_avg_price) /
+      ((userData.bear_tokens / 1e9) * userAvgPrices.bear_avg_price)) *
+      100,
+    0
+  );
+
   if (loading) {
     return (
       <div
@@ -359,59 +376,256 @@ export default function PredictionPoolDashboard() {
               </div>
             </div>
 
-            {/* Pool Details */}
+            {/* Your Portfolio */}
             <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center space-x-2 mb-6">
                 <Coins className="w-5 h-5 text-blue-600" />
-                <h2 className="text-xl font-semibold">Pool Details</h2>
+                <h2 className="text-xl font-semibold">Your Portfolio</h2>
               </div>
 
               <div className="space-y-3">
                 <Separator className="bg-gray-200 dark:bg-gray-700" />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Bull Column */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Bull Reserve
-                      </span>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold">
-                          {(poolData.bull_reserve / 1000000000).toFixed(9)} SUI
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Bear Reserve
-                      </span>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold">
-                          {(poolData.bear_reserve / 1000000000).toFixed(9)} SUI
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Bull Supply
+                        Bull Tokens
                       </span>
                       <span className="font-semibold">
-                        {(poolData.bull_supply / 1000000000).toFixed(9)}{" "}
+                        {(userBalances.bull_tokens / 1e9).toFixed(9)}{" "}
                         {pool?.bull_token?.fields?.symbol || "BULL"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Bear Supply
+                        Bull Value
                       </span>
                       <span className="font-semibold">
-                        {(poolData.bear_supply / 1000000000).toFixed(9)}{" "}
-                        {pool?.bear_token?.fields?.symbol || "BEAR"}
+                        {safeNumber(
+                          (userData.bull_tokens / 1e9) *
+                            (poolData.bull_reserve /
+                              1e9 /
+                              (poolData.bull_supply / 1e9)),
+                          0
+                        ).toFixed(9)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Bull Returns
+                      </span>
+                      <span
+                        className={`font-semibold ${
+                          userBullReturns >= 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {userBullReturns > 0 ? "+" : ""}
+                        {userBullReturns.toFixed(2)} %
                       </span>
                     </div>
                   </div>
 
+                  {/* Bear Column */}
                   <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Bear Tokens
+                      </span>
+                      <span className="font-semibold">
+                        {(userBalances.bear_tokens / 1e9).toFixed(9)}{" "}
+                        {pool?.bear_token?.fields?.symbol || "BULL"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Bear Value
+                      </span>
+                      <span className="font-semibold">
+                        {safeNumber(
+                          (userData.bear_tokens / 1e9) *
+                            (poolData.bear_reserve /
+                              1e9 /
+                              (poolData.bear_supply / 1e9)),
+                          0
+                        ).toFixed(9)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Bear Returns
+                      </span>
+                      <span
+                        className={`font-semibold ${
+                          userBearReturns >= 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {userBearReturns > 0 ? "+" : ""}
+                        {userBearReturns.toFixed(2)} %
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <Separator className="bg-gray-200 dark:bg-gray-700" />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Token Ratio
+                    </span>
+                    <div className="flex items-center space-x-2">
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        {(
+                          (userData.bull_tokens /
+                            1e9 /
+                            (userData.bull_tokens / 1e9 +
+                              userData.bear_tokens / 1e9)) *
+                          100
+                        ).toFixed(1)}
+                        % Bull
+                      </Badge>
+                      <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                        {(
+                          (userData.bear_tokens /
+                            1e9 /
+                            (userData.bull_tokens / 1e9 +
+                              userData.bear_tokens / 1e9)) *
+                          100
+                        ).toFixed(1)}
+                        % Bear
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Total Value
+                    </span>
+                    <span className="font-bold text-blue-600">
+                      {(
+                        (userData.bull_tokens / 1e9) *
+                          (poolData.bull_reserve /
+                            1e9 /
+                            (poolData.bull_supply / 1e9)) +
+                        (userData.bear_tokens / 1e9) *
+                          (poolData.bear_reserve /
+                            1e9 /
+                            (poolData.bear_supply / 1e9))
+                      ).toFixed(9)}{" "}
+                      SUI
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Total Returns
+                    </span>
+                    <span
+                      className={`font-bold ${
+                        (((userData.bull_tokens / 1e9) *
+                          (poolData.bull_reserve /
+                            1e9 /
+                            (poolData.bull_supply / 1e9)) +
+                          (userData.bear_tokens / 1e9) *
+                            (poolData.bear_reserve /
+                              1e9 /
+                              (poolData.bear_supply / 1e9)) -
+                          ((userData.bull_tokens / 1e9) *
+                            userAvgPrices.bull_avg_price +
+                            (userData.bear_tokens / 1e9) *
+                              userAvgPrices.bear_avg_price)) /
+                          ((userData.bull_tokens / 1e9) *
+                            userAvgPrices.bull_avg_price +
+                            (userData.bear_tokens / 1e9) *
+                              userAvgPrices.bear_avg_price)) *
+                          100 >=
+                        0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {((userData.bull_tokens / 1e9) *
+                        (poolData.bull_reserve /
+                          1e9 /
+                          (poolData.bull_supply / 1e9)) +
+                        (userData.bear_tokens / 1e9) *
+                          (poolData.bear_reserve /
+                            1e9 /
+                            (poolData.bear_supply / 1e9)) -
+                        ((userData.bull_tokens / 1e9) *
+                          userAvgPrices.bull_avg_price +
+                          (userData.bear_tokens / 1e9) *
+                            userAvgPrices.bear_avg_price)) /
+                        ((userData.bull_tokens / 1e9) *
+                          userAvgPrices.bull_avg_price +
+                          (userData.bear_tokens / 1e9) *
+                            userAvgPrices.bear_avg_price) >
+                      0
+                        ? "+"
+                        : ""}
+                      {(
+                        (((userData.bull_tokens / 1e9) *
+                          (poolData.bull_reserve /
+                            1e9 /
+                            (poolData.bull_supply / 1e9)) +
+                          (userData.bear_tokens / 1e9) *
+                            (poolData.bear_reserve /
+                              1e9 /
+                              (poolData.bear_supply / 1e9)) -
+                          ((userData.bull_tokens / 1e9) *
+                            userAvgPrices.bull_avg_price +
+                            (userData.bear_tokens / 1e9) *
+                              userAvgPrices.bear_avg_price)) /
+                          ((userData.bull_tokens / 1e9) *
+                            userAvgPrices.bull_avg_price +
+                            (userData.bear_tokens / 1e9) *
+                              userAvgPrices.bear_avg_price)) *
+                        100
+                      ).toFixed(2)}{" "}
+                      %
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Pool Statistics */}
+            <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center space-x-2 mb-6">
+                <Coins className="w-5 h-5 text-blue-600" />
+                <h2 className="text-xl font-semibold">Pool Statistics</h2>
+              </div>
+
+              <div className="space-y-3">
+                <Separator className="bg-gray-200 dark:bg-gray-700" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Bull Column */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Bull Reserve
+                      </span>
+                      <span className="font-semibold">
+                        {(poolData.bull_reserve / 1e9).toFixed(9)} SUI
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Bull Supply
+                      </span>
+                      <span className="font-semibold">
+                        {(poolData.bull_supply / 1e9).toFixed(9)}{" "}
+                        {pool?.bull_token?.fields?.symbol || "BULL"}
+                      </span>
+                    </div>
+
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
                         Bull Price
@@ -425,6 +639,29 @@ export default function PredictionPoolDashboard() {
                         SUI
                       </span>
                     </div>
+                  </div>
+
+                  {/* Bear Column */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Bear Reserve
+                      </span>
+                      <span className="font-semibold">
+                        {(poolData.bear_reserve / 1e9).toFixed(9)} SUI
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Bear Supply
+                      </span>
+                      <span className="font-semibold">
+                        {(poolData.bear_supply / 1e9).toFixed(9)}{" "}
+                        {pool?.bear_token?.fields?.symbol || "BEAR"}
+                      </span>
+                    </div>
+
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
                         Bear Price
@@ -438,23 +675,46 @@ export default function PredictionPoolDashboard() {
                         SUI
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Creator Fee
-                      </span>
-                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        {poolData.vault_creator_fee}%
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Treasury Fee
-                      </span>
-                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        {poolData.treasury_fee}%
-                      </Badge>
-                    </div>
                   </div>
+                </div>
+                <Separator className="bg-gray-200 dark:bg-gray-700" />
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Pool Ratio
+                      </span>
+                      <div className="flex items-center space-x-2">
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          {bullPercentage.toFixed(1)}% Bull
+                        </Badge>
+                        <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                          {bearPercentage.toFixed(1)}% Bear
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Total Supply
+                      </span>
+                      <span className="font-bold">
+                        {formatTokens(
+                          poolData.bull_supply + poolData.bear_supply
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Total Pool Value
+                      </span>
+                      <span className="font-bold text-blue-600">
+                        {formatValue(
+                          poolData.bull_reserve + poolData.bear_reserve
+                        )}
+                      </span>
+                    </div>
+                  </div>{" "}
                 </div>
               </div>
             </div>
@@ -476,305 +736,323 @@ export default function PredictionPoolDashboard() {
                 onValueChange={setActiveVault}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-gray-700">
-                  <TabsTrigger
-                    value="bull"
-                    className="data-[state=active]:bg-green-600 data-[state=active]:text-white"
-                  >
-                    <TrendingUp className="w-4 h-4 mr-2" />
-                    Bull Vault
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="bear"
-                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white"
-                  >
-                    <TrendingDown className="w-4 h-4 mr-2" />
-                    Bear Vault
-                  </TabsTrigger>
-                </TabsList>
+                {connected ? (
+                  <>
+                    <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-gray-700">
+                      <TabsTrigger
+                        value="bull"
+                        className="data-[state=active]:bg-green-600 data-[state=active]:text-white"
+                      >
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Bull Vault
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="bear"
+                        className="data-[state=active]:bg-red-600 data-[state=active]:text-white"
+                      >
+                        <TrendingDown className="w-4 h-4 mr-2" />
+                        Bear Vault
+                      </TabsTrigger>
+                    </TabsList>
 
-                <TabsContent value="bull" className="space-y-6 mt-6">
-                  <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          Your Bull Tokens
-                        </span>
-                        <span className="text-lg font-bold text-green-600">
-                          {(userData.bull_tokens / 1e9).toFixed(9)}
-                        </span>
+                    <TabsContent value="bull" className="space-y-6 mt-6">
+                      <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              Your Bull Tokens
+                            </span>
+                            <span className="text-lg font-bold text-green-600">
+                              {(userData.bull_tokens / 1e9).toFixed(9)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              Estimated Price
+                            </span>
+                            <span className="text-lg font-bold">
+                              {safeNumber(
+                                poolData.bull_reserve /
+                                  1e9 /
+                                  (poolData.bull_supply / 1e9)
+                              ).toFixed(9)}{" "}
+                              SUI
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              Total Value
+                            </span>
+                            <span className="text-lg font-bold text-green-600">
+                              {safeNumber(
+                                (userData.bull_tokens / 1e9) *
+                                  (poolData.bull_reserve /
+                                    1e9 /
+                                    (poolData.bull_supply / 1e9)),
+                                0
+                              ).toFixed(9)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          Estimated Price
-                        </span>
-                        <span className="text-lg font-bold">
-                          {safeNumber(
-                            poolData.bull_reserve /
-                              1e9 /
-                              (poolData.bull_supply / 1e9)
-                          ).toFixed(9)}{" "}
-                          SUI
-                        </span>
+                      <div
+                        className={`p-4 rounded-lg ${
+                          userBullReturns >= 0
+                            ? "bg-green-50 dark:bg-green-900/20"
+                            : "bg-red-50 dark:bg-red-900/20"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Returns</span>
+                          <span
+                            className={`text-lg font-bold ${
+                              userBullReturns >= 0
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {userBullReturns > 0 ? "+" : ""}
+                            {userBullReturns.toFixed(2)} %
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Total Value</span>
-                        <span className="text-lg font-bold text-green-600">
-                          {safeNumber(
-                            (userData.bull_tokens / 1e9) *
-                              (poolData.bull_reserve /
-                                1e9 /
-                                (poolData.bull_supply / 1e9),
-                              0)
-                          ).toFixed(9)}
-                        </span>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Buy Amount (SUI)
+                          </label>
+                          <Input
+                            type="number"
+                            placeholder="Enter amount"
+                            value={buyAmount}
+                            onChange={(e) => setBuyAmount(e.target.value)}
+                            className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+                          />
+                        </div>
+                        <Button
+                          className="w-full bg-green-600 hover:bg-green-700 text-white"
+                          onClick={handleBuyBull}
+                          disabled={isLoading || !buyAmount || !connected}
+                        >
+                          {isLoading ? (
+                            <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                          ) : null}
+                          Buy Bull Tokens
+                        </Button>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Buy Amount (SUI)
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Enter amount"
-                        value={buyAmount}
-                        onChange={(e) => setBuyAmount(e.target.value)}
-                        className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
-                      />
-                    </div>
-                    <Button
-                      className="w-full bg-green-600 hover:bg-green-700 text-white"
-                      onClick={handleBuyBull}
-                      disabled={isLoading || !buyAmount || !connected}
-                    >
-                      {isLoading ? (
-                        <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                      ) : null}
-                      Buy Bull Tokens
-                    </Button>
-                  </div>
+                      <Separator className="bg-gray-200 dark:bg-gray-700" />
 
-                  <Separator className="bg-gray-200 dark:bg-gray-700" />
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Sell Amount (Tokens)
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Enter token amount"
-                        value={sellAmount}
-                        onChange={(e) => setSellAmount(e.target.value)}
-                        className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
-                      />
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="w-full border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
-                      onClick={handleSellBull}
-                      disabled={isLoading || !sellAmount || !connected}
-                    >
-                      {isLoading ? (
-                        <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                      ) : null}
-                      Sell Bull Tokens
-                    </Button>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="bear" className="space-y-6 mt-6">
-                  <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          Your Bear Tokens
-                        </span>
-                        <span className="text-lg font-bold text-red-600">
-                          {(userData.bear_tokens / 1e9).toFixed(9)}
-                        </span>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Sell Amount (Tokens)
+                          </label>
+                          <Input
+                            type="number"
+                            placeholder="Enter token amount"
+                            value={sellAmount}
+                            onChange={(e) => setSellAmount(e.target.value)}
+                            className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+                          />
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="w-full border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+                          onClick={handleSellBull}
+                          disabled={isLoading || !sellAmount || !connected}
+                        >
+                          {isLoading ? (
+                            <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                          ) : null}
+                          Sell Bull Tokens
+                        </Button>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          Estimated Price
-                        </span>
-                        <span className="text-lg font-bold">
-                          {safeNumber(
-                            poolData.bear_reserve /
-                              1e9 /
-                              (poolData.bear_supply / 1e9)
-                          ).toFixed(9)}{" "}
-                          SUI
-                        </span>
+                    </TabsContent>
+
+                    <TabsContent value="bear" className="space-y-6 mt-6">
+                      <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              Your Bear Tokens
+                            </span>
+                            <span className="text-lg font-bold text-red-600">
+                              {(userData.bear_tokens / 1e9).toFixed(9)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              Estimated Price
+                            </span>
+                            <span className="text-lg font-bold">
+                              {safeNumber(
+                                poolData.bear_reserve /
+                                  1e9 /
+                                  (poolData.bear_supply / 1e9)
+                              ).toFixed(9)}{" "}
+                              SUI
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              Total Value
+                            </span>
+                            <span className="text-lg font-bold text-red-600">
+                              {safeNumber(
+                                (userData.bear_tokens / 1e9) *
+                                  (poolData.bear_reserve /
+                                    1e9 /
+                                    (poolData.bear_supply / 1e9)),
+                                0
+                              ).toFixed(9)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Total Value</span>
-                        <span className="text-lg font-bold text-red-600">
-                          {safeNumber(
-                            (userData.bear_tokens / 1e9) *
-                              (poolData.bear_reserve /
-                                1e9 /
-                                (poolData.bear_supply / 1e9)),
-                            0
-                          ).toFixed(9)}
-                        </span>
+                      <div
+                        className={`p-4 rounded-lg ${
+                          userBearReturns >= 0
+                            ? "bg-green-50 dark:bg-green-900/20"
+                            : "bg-red-50 dark:bg-red-900/20"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Returns</span>
+                          <span
+                            className={`text-lg font-bold ${
+                              userBearReturns >= 0
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {userBearReturns > 0 ? "+" : ""}
+                            {userBearReturns.toFixed(2)} %
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Buy Amount (SUI)
+                          </label>
+                          <Input
+                            type="number"
+                            placeholder="Enter amount"
+                            value={buyAmount}
+                            onChange={(e) => setBuyAmount(e.target.value)}
+                            className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+                          />
+                        </div>
+                        <Button
+                          className="w-full bg-red-600 hover:bg-red-700 text-white"
+                          onClick={handleBuyBear}
+                          disabled={isLoading || !buyAmount || !connected}
+                        >
+                          {isLoading ? (
+                            <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                          ) : null}
+                          Buy Bear Tokens
+                        </Button>
+                      </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Buy Amount (SUI)
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Enter amount"
-                        value={buyAmount}
-                        onChange={(e) => setBuyAmount(e.target.value)}
-                        className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
-                      />
-                    </div>
-                    <Button
-                      className="w-full bg-red-600 hover:bg-red-700 text-white"
-                      onClick={handleBuyBear}
-                      disabled={isLoading || !buyAmount || !connected}
-                    >
-                      {isLoading ? (
-                        <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                      ) : null}
-                      Buy Bear Tokens
-                    </Button>
-                  </div>
+                      <Separator className="bg-gray-200 dark:bg-gray-700" />
 
-                  <Separator className="bg-gray-200 dark:bg-gray-700" />
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Sell Amount (Tokens)
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Enter token amount"
-                        value={sellAmount}
-                        onChange={(e) => setSellAmount(e.target.value)}
-                        className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
-                      />
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="w-full border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      onClick={handleSellBear}
-                      disabled={isLoading || !sellAmount || !connected}
-                    >
-                      {isLoading ? (
-                        <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                      ) : null}
-                      Sell Bear Tokens
-                    </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            {/* Settle Outcome */}
-           {pool?.pool_creator === account?.address ? <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
-              <h3 className="font-semibold mb-2">Settle Prediction Outcome</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Distribute rewards based on the outcome.
-              </p>
-              <Button
-                variant="outline"
-                className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                onClick={handleDistribute}
-                disabled={isLoading || !connected}
-              >
-                {isLoading ? (
-                  <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                ) : null}
-                Settle Outcome
-              </Button>
-            </div>: null}
-
-            {/* Pool Statistics */}
-            <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex items-center space-x-2 mb-6">
-                <Users className="w-5 h-5 text-blue-600" />
-                <h3 className="font-semibold">Pool Statistics</h3>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Total Pool Value
-                  </span>
-                  <span className="font-bold text-blue-600">
-                    {formatValue(poolData.bull_reserve + poolData.bear_reserve)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Total Supply
-                  </span>
-                  <span className="font-bold">
-                    {formatTokens(poolData.bull_supply + poolData.bear_supply)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Pool Ratio
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                      {bullPercentage.toFixed(1)}% Bull
-                    </Badge>
-                    <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                      {bearPercentage.toFixed(1)}% Bear
-                    </Badge>
-                  </div>
-                </div>
-
-                <Separator className="bg-gray-200 dark:bg-gray-700" />
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Price
-                  </span>
-                  <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                    {poolData.asset_id.slice(0, 10)}...
-                  </code>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Your Portfolio Value
-                  </span>
-                  <span className="font-bold text-blue-600">
-                    {safeNumber(
-                      (userData.bull_tokens / 1e9) *
-                        (poolData.bull_reserve /
-                          1e9 /
-                          (poolData.bull_supply / 1e9)) +
-                        (userData.bear_tokens / 1e9) *
-                          (poolData.bear_reserve /
-                            1e9 /
-                            (poolData.bear_supply / 1e9)),
-                      0
-                    ).toFixed(9)}{" "}
-                    SUI
-                  </span>
-                </div>
-
-                {!connected && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Sell Amount (Tokens)
+                          </label>
+                          <Input
+                            type="number"
+                            placeholder="Enter token amount"
+                            value={sellAmount}
+                            onChange={(e) => setSellAmount(e.target.value)}
+                            className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
+                          />
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="w-full border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          onClick={handleSellBear}
+                          disabled={isLoading || !sellAmount || !connected}
+                        >
+                          {isLoading ? (
+                            <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                          ) : null}
+                          Sell Bear Tokens
+                        </Button>
+                      </div>
+                    </TabsContent>
+                  </>
+                ) : (
                   <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                     <p className="text-sm text-yellow-700 dark:text-yellow-300">
                       Connect your wallet to trade tokens
                     </p>
                   </div>
                 )}
+              </Tabs>
+            </div>
+
+            {/* Settle Outcome */}
+            {pool?.pool_creator === account?.address ? (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
+                <h3 className="font-semibold mb-2">
+                  Settle Prediction Outcome
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Distribute rewards based on the outcome.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  onClick={handleDistribute}
+                  disabled={isLoading || !connected}
+                >
+                  {isLoading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                  ) : null}
+                  Settle Outcome
+                </Button>
+              </div>
+            ) : null}
+
+            <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center space-x-2 mb-6">
+                <h3 className="font-semibold">Fee Structure</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Stable Order Fee
+                  </span>
+                  <span className="font-bold text-blue-600">
+                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      {pool?.stable_order_fee}%
+                    </Badge>
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Protocol Fee
+                  </span>
+                  <span className="font-bold">
+                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      {poolData.treasury_fee}%
+                    </Badge>
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Creator Fee
+                  </span>
+                  <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                    {poolData.vault_creator_fee}%
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>

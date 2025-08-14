@@ -18,7 +18,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import PoolConfigurationStep from "./Steps/PoolConfigurationStep";
 import TokenConfigurationStep from "./Steps/TokenConfigurationStep";
-import AddressConfigurationStep from "./Steps/AddressConfigurationStep";
 import FeeConfigurationStep from "./Steps/FeeConfigurationStep";
 import ReviewStep from "./Steps/ReviewStep";
 import StepIndicator from "./Steps/StepIndicator";
@@ -35,8 +34,8 @@ export default function CreateFatePoolForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
-  const stepTitles = ["Pool", "Tokens", "Address", "Fees", "Review"];
-  const totalSteps = 5;
+  const stepTitles = ["Pool", "Tokens", "Fees", "Review"];
+  const totalSteps = 4;
 
   const [formData, setFormData] = useState<FormData>({
     poolName: "",
@@ -116,6 +115,7 @@ export default function CreateFatePoolForm() {
   const handlePrevious = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -143,7 +143,8 @@ export default function CreateFatePoolForm() {
     try {
       const poolName = formData.poolName || "Default Pool";
       const poolDescription = formData.poolDescription || "A prediction pool";
-      const assetAddress = formData.assetAddress || "0x0000000000000000000000000000000000000000";
+      const assetAddress =
+        formData.assetAddress || "0x0000000000000000000000000000000000000000";
       const protocolFee = parseInt(formData.protocolFee || "100");
       const stableOrderFee = parseInt(formData.stableOrderFee || "50");
       const poolCreatorFee = parseInt(formData.poolCreatorFee || "50");
@@ -234,7 +235,8 @@ export default function CreateFatePoolForm() {
 
       console.log("Pool created successfully:", result);
 
-      const resultObj = typeof result === "string" ? JSON.parse(result) : result;
+      const resultObj =
+        typeof result === "string" ? JSON.parse(result) : result;
 
       const poolId = resultObj.effects?.created?.[0]?.reference?.objectId;
       if (poolId) {
@@ -280,20 +282,13 @@ export default function CreateFatePoolForm() {
         );
       case 3:
         return (
-          <AddressConfigurationStep
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        );
-      case 4:
-        return (
           <FeeConfigurationStep
             formData={formData}
             updateFormData={updateFormData}
             errors={errors}
           />
         );
-      case 5:
+      case 4:
         return (
           <ReviewStep
             formData={formData}
@@ -307,7 +302,7 @@ export default function CreateFatePoolForm() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 h-[150vh] dark:bg-black bg-white">
+    <div className="max-w-4xl mx-auto p-4 dark:bg-black bg-white">
       <div className="bg-white dark:bg-black p-6 rounded-xl my-10">
         <Card className="shadow-lg bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
           <CardHeader className="border-b border-gray-200 dark:border-gray-700">
@@ -327,31 +322,28 @@ export default function CreateFatePoolForm() {
 
             <div className="">{renderCurrentStep()}</div>
 
-            {currentStep < totalSteps && (
-              <>
-                <Separator className="bg-gray-200 dark:bg-gray-700 my-6" />
-                <div className="flex justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handlePrevious}
-                    disabled={currentStep === 1}
-                    className="flex items-center gap-2"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleNext}
-                    className="flex items-center gap-2 bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200"
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </>
-            )}
+            <Separator className="bg-gray-200 dark:bg-gray-700 my-6" />
+            <div className="flex justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentStep === 1}
+                className="flex items-center gap-2 bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <Button
+                type="button"
+                onClick={handleNext}
+                disabled={currentStep === 4}
+                className="flex items-center gap-2 bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

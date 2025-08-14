@@ -116,6 +116,90 @@ export default function CreateFatePoolForm() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const stepTitles = ["Pool", "Tokens", "Address", "Fees", "Review"];
+  const totalSteps = 5;
+
+  // Form data state
+  const [formData, setFormData] = useState<FormData>({
+    poolName: "",
+    bullCoinName: "",
+    bullCoinSymbol: "",
+    bearCoinName: "",
+    bearCoinSymbol: "",
+    creatorAddress: "",
+    creatorStakeFee: "",
+    creatorUnstakeFee: "",
+    stakeFee: "",
+    unstakeFee: "",
+    priceInfoObjectId: "",
+  });
+
+  const updateFormData = (updates: Partial<FormData>) => {
+    setFormData((prev) => ({ ...prev, ...updates }));
+    const updatedFields = Object.keys(updates) as (keyof FormData)[];
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      updatedFields.forEach((field) => {
+        delete newErrors[field];
+      });
+      return newErrors;
+    });
+  };
+
+  const validateStep = (step: number) => {
+    const newErrors: FormErrors = {};
+
+    switch (step) {
+      case 1:
+        if (!formData.poolName.trim()) {
+          newErrors.poolName = "Pool name is required";
+        }
+        break;
+      case 2:
+        if (!formData.bullCoinName.trim()) {
+          newErrors.bullCoinName = "Bull coin name is required";
+        }
+        if (!formData.bullCoinSymbol.trim()) {
+          newErrors.bullCoinSymbol = "Bull coin symbol is required";
+        }
+        if (!formData.bearCoinName.trim()) {
+          newErrors.bearCoinName = "Bear coin name is required";
+        }
+        if (!formData.bearCoinSymbol.trim()) {
+          newErrors.bearCoinSymbol = "Bear coin symbol is required";
+        }
+        break;
+      case 4:
+        if (!formData.creatorStakeFee.trim()) {
+          newErrors.creatorStakeFee = "Creator stake fee is required";
+        }
+        if (!formData.creatorUnstakeFee.trim()) {
+          newErrors.creatorUnstakeFee = "Creator unstake fee is required";
+        }
+        if (!formData.stakeFee.trim()) {
+          newErrors.stakeFee = "Stake fee is required";
+        }
+        if (!formData.unstakeFee.trim()) {
+          newErrors.unstakeFee = "Unstake fee is required";
+        }
+        break;
+      default:
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
+    }
+  };
+
+  const handlePrevious = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);

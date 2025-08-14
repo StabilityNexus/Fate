@@ -382,153 +382,175 @@ export default function PredictionPoolDashboard() {
                 <Coins className="w-5 h-5 text-blue-600" />
                 <h2 className="text-xl font-semibold">Your Portfolio</h2>
               </div>
+              {account?.address ? (
+                <div className="space-y-3">
+                  <Separator className="bg-gray-200 dark:bg-gray-700" />
 
-              <div className="space-y-3">
-                <Separator className="bg-gray-200 dark:bg-gray-700" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Bull Column */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          Bull Tokens
+                        </span>
+                        <span className="font-semibold">
+                          {(userBalances.bull_tokens / 1e9).toFixed(9)}{" "}
+                          {pool?.bull_token?.fields?.symbol || "BULL"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          Bull Value
+                        </span>
+                        <span className="font-semibold">
+                          {safeNumber(
+                            (userData.bull_tokens / 1e9) *
+                              (poolData.bull_reserve /
+                                1e9 /
+                                (poolData.bull_supply / 1e9)),
+                            0
+                          ).toFixed(9)}
+                        </span>
+                      </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Bull Column */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          Bull Returns
+                        </span>
+                        <span
+                          className={`font-semibold ${
+                            userBullReturns >= 0
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {userBullReturns > 0 ? "+" : ""}
+                          {userBullReturns.toFixed(2)} %
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Bear Column */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          Bear Tokens
+                        </span>
+                        <span className="font-semibold">
+                          {(userBalances.bear_tokens / 1e9).toFixed(9)}{" "}
+                          {pool?.bear_token?.fields?.symbol || "BULL"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          Bear Value
+                        </span>
+                        <span className="font-semibold">
+                          {safeNumber(
+                            (userData.bear_tokens / 1e9) *
+                              (poolData.bear_reserve /
+                                1e9 /
+                                (poolData.bear_supply / 1e9)),
+                            0
+                          ).toFixed(9)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          Bear Returns
+                        </span>
+                        <span
+                          className={`font-semibold ${
+                            userBearReturns >= 0
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {userBearReturns > 0 ? "+" : ""}
+                          {userBearReturns.toFixed(2)} %
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <Separator className="bg-gray-200 dark:bg-gray-700" />
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Bull Tokens
+                        Token Ratio
                       </span>
-                      <span className="font-semibold">
-                        {(userBalances.bull_tokens / 1e9).toFixed(9)}{" "}
-                        {pool?.bull_token?.fields?.symbol || "BULL"}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                          {(
+                            (userData.bull_tokens /
+                              1e9 /
+                              (userData.bull_tokens / 1e9 +
+                                userData.bear_tokens / 1e9)) *
+                            100
+                          ).toFixed(1)}
+                          % Bull
+                        </Badge>
+                        <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                          {(
+                            (userData.bear_tokens /
+                              1e9 /
+                              (userData.bull_tokens / 1e9 +
+                                userData.bear_tokens / 1e9)) *
+                            100
+                          ).toFixed(1)}
+                          % Bear
+                        </Badge>
+                      </div>
                     </div>
+
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Bull Value
+                        Total Value
                       </span>
-                      <span className="font-semibold">
-                        {safeNumber(
+                      <span className="font-bold text-blue-600">
+                        {(
                           (userData.bull_tokens / 1e9) *
                             (poolData.bull_reserve /
                               1e9 /
-                              (poolData.bull_supply / 1e9)),
-                          0
-                        ).toFixed(9)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Bull Returns
-                      </span>
-                      <span
-                        className={`font-semibold ${
-                          userBullReturns >= 0
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {userBullReturns > 0 ? "+" : ""}
-                        {userBullReturns.toFixed(2)} %
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Bear Column */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Bear Tokens
-                      </span>
-                      <span className="font-semibold">
-                        {(userBalances.bear_tokens / 1e9).toFixed(9)}{" "}
-                        {pool?.bear_token?.fields?.symbol || "BULL"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Bear Value
-                      </span>
-                      <span className="font-semibold">
-                        {safeNumber(
+                              (poolData.bull_supply / 1e9)) +
                           (userData.bear_tokens / 1e9) *
                             (poolData.bear_reserve /
                               1e9 /
-                              (poolData.bear_supply / 1e9)),
-                          0
-                        ).toFixed(9)}
+                              (poolData.bear_supply / 1e9))
+                        ).toFixed(9)}{" "}
+                        SUI
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Bear Returns
+                        Total Returns
                       </span>
                       <span
-                        className={`font-semibold ${
-                          userBearReturns >= 0
+                        className={`font-bold ${
+                          (((userData.bull_tokens / 1e9) *
+                            (poolData.bull_reserve /
+                              1e9 /
+                              (poolData.bull_supply / 1e9)) +
+                            (userData.bear_tokens / 1e9) *
+                              (poolData.bear_reserve /
+                                1e9 /
+                                (poolData.bear_supply / 1e9)) -
+                            ((userData.bull_tokens / 1e9) *
+                              userAvgPrices.bull_avg_price +
+                              (userData.bear_tokens / 1e9) *
+                                userAvgPrices.bear_avg_price)) /
+                            ((userData.bull_tokens / 1e9) *
+                              userAvgPrices.bull_avg_price +
+                              (userData.bear_tokens / 1e9) *
+                                userAvgPrices.bear_avg_price)) *
+                            100 >=
+                          0
                             ? "text-green-600"
                             : "text-red-600"
                         }`}
                       >
-                        {userBearReturns > 0 ? "+" : ""}
-                        {userBearReturns.toFixed(2)} %
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <Separator className="bg-gray-200 dark:bg-gray-700" />
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      Token Ratio
-                    </span>
-                    <div className="flex items-center space-x-2">
-                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                        {(
-                          (userData.bull_tokens /
-                            1e9 /
-                            (userData.bull_tokens / 1e9 +
-                              userData.bear_tokens / 1e9)) *
-                          100
-                        ).toFixed(1)}
-                        % Bull
-                      </Badge>
-                      <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                        {(
-                          (userData.bear_tokens /
-                            1e9 /
-                            (userData.bull_tokens / 1e9 +
-                              userData.bear_tokens / 1e9)) *
-                          100
-                        ).toFixed(1)}
-                        % Bear
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      Total Value
-                    </span>
-                    <span className="font-bold text-blue-600">
-                      {(
-                        (userData.bull_tokens / 1e9) *
-                          (poolData.bull_reserve /
-                            1e9 /
-                            (poolData.bull_supply / 1e9)) +
-                        (userData.bear_tokens / 1e9) *
-                          (poolData.bear_reserve /
-                            1e9 /
-                            (poolData.bear_supply / 1e9))
-                      ).toFixed(9)}{" "}
-                      SUI
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      Total Returns
-                    </span>
-                    <span
-                      className={`font-bold ${
-                        (((userData.bull_tokens / 1e9) *
+                        {((userData.bull_tokens / 1e9) *
                           (poolData.bull_reserve /
                             1e9 /
                             (poolData.bull_supply / 1e9)) +
@@ -543,56 +565,41 @@ export default function PredictionPoolDashboard() {
                           ((userData.bull_tokens / 1e9) *
                             userAvgPrices.bull_avg_price +
                             (userData.bear_tokens / 1e9) *
-                              userAvgPrices.bear_avg_price)) *
-                          100 >=
+                              userAvgPrices.bear_avg_price) >
                         0
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {((userData.bull_tokens / 1e9) *
-                        (poolData.bull_reserve /
-                          1e9 /
-                          (poolData.bull_supply / 1e9)) +
-                        (userData.bear_tokens / 1e9) *
-                          (poolData.bear_reserve /
-                            1e9 /
-                            (poolData.bear_supply / 1e9)) -
-                        ((userData.bull_tokens / 1e9) *
-                          userAvgPrices.bull_avg_price +
-                          (userData.bear_tokens / 1e9) *
-                            userAvgPrices.bear_avg_price)) /
-                        ((userData.bull_tokens / 1e9) *
-                          userAvgPrices.bull_avg_price +
-                          (userData.bear_tokens / 1e9) *
-                            userAvgPrices.bear_avg_price) >
-                      0
-                        ? "+"
-                        : ""}
-                      {(
-                        (((userData.bull_tokens / 1e9) *
-                          (poolData.bull_reserve /
-                            1e9 /
-                            (poolData.bull_supply / 1e9)) +
-                          (userData.bear_tokens / 1e9) *
-                            (poolData.bear_reserve /
+                          ? "+"
+                          : ""}
+                        {(
+                          (((userData.bull_tokens / 1e9) *
+                            (poolData.bull_reserve /
                               1e9 /
-                              (poolData.bear_supply / 1e9)) -
-                          ((userData.bull_tokens / 1e9) *
-                            userAvgPrices.bull_avg_price +
+                              (poolData.bull_supply / 1e9)) +
                             (userData.bear_tokens / 1e9) *
-                              userAvgPrices.bear_avg_price)) /
-                          ((userData.bull_tokens / 1e9) *
-                            userAvgPrices.bull_avg_price +
-                            (userData.bear_tokens / 1e9) *
-                              userAvgPrices.bear_avg_price)) *
-                        100
-                      ).toFixed(2)}{" "}
-                      %
-                    </span>
+                              (poolData.bear_reserve /
+                                1e9 /
+                                (poolData.bear_supply / 1e9)) -
+                            ((userData.bull_tokens / 1e9) *
+                              userAvgPrices.bull_avg_price +
+                              (userData.bear_tokens / 1e9) *
+                                userAvgPrices.bear_avg_price)) /
+                            ((userData.bull_tokens / 1e9) *
+                              userAvgPrices.bull_avg_price +
+                              (userData.bear_tokens / 1e9) *
+                                userAvgPrices.bear_avg_price)) *
+                          100
+                        ).toFixed(2)}{" "}
+                        %
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    Connect your wallet to view your portfolio.
+                  </p>
+                </div>
+              )}
             </div>
             {/* Pool Statistics */}
             <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-md hover:shadow-lg transition-shadow">

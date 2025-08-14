@@ -103,7 +103,7 @@ const PoolConfigurationStep: React.FC<PoolConfigurationStepProps> = ({
             BTC/USD
           </option>
           <option value="0xca80ba6dc32e08d06f1aa886011eed1d77c77be9eb761cc10d72b7d0a2fd57a6">ETH/USD</option>
-          <option value="0x73dc009953c83c944690037ea477df627657f45c14f16ad3a61089c5a3f9f4f2">ADA/USD</option>
+          {/* <option value="0x73dc009953c83c944690037ea477df627657f45c14f16ad3a61089c5a3f9f4f2">ADA/USD</option> */}
         </select>
       </div>
     </div>

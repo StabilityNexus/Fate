@@ -242,7 +242,7 @@ export default function CreateFatePoolForm() {
       }
 
       alert("Prediction Pool created successfully!");
-      router.push("/explorePools");
+      router.push("/predictionPool");
     } catch (err: any) {
       console.error("Transaction error:", err);
 

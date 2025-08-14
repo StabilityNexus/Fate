@@ -375,7 +375,7 @@ const ExploreFatePools = () => {
                   {!searchQuery && (
                     <button
                       className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all dark:bg-white dark:text-black"
-                      onClick={() => router.push("/createPool")}
+                      onClick={() => router.push("/predictionPool/create")}
                     >
                       Create the First Pool
                     </button>

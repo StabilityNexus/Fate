@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ import { useDistribute } from "@/fateHooks/useDistribute";
 import { usePool } from "@/fateHooks/usePool";
 import Footer from "@/components/layout/Footer";
 import { UserData } from "@/types/User";
+import StickyCursor from "@/components/StickyCursor";
 
 interface PoolData {
   id: string;
@@ -42,6 +43,7 @@ interface PoolData {
 }
 
 export default function PredictionPoolDashboard() {
+  const stickyRef = useRef<HTMLElement | null>(null);
   const { buyTokens } = useBuyTokens();
   const { sellTokens } = useSellTokens();
   const { distribute } = useDistribute();
@@ -315,14 +317,13 @@ export default function PredictionPoolDashboard() {
       </div>
     );
   }
-
   return (
     <div
       className={`min-h-screen transition-colors duration-300 dark:bg-gray-900 dark:text-white bg-gray-50 text-gray-900
       }`}
     >
       <Navbar />
-
+      <StickyCursor stickyRef={stickyRef} />
       <div className="container mx-auto px-6 py-8">
         {transactionError && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300">

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PredictionCard } from "@/components/FatePoolCard/FatePoolCard";
 import { Search } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
@@ -9,10 +9,12 @@ import { SuiClient } from "@mysten/sui/client";
 import { useRouter } from "next/navigation";
 import { Token } from "@/types/Token";
 import { Pool, PoolCreatedEvent } from "@/types/Pool";
+import StickyCursor from "@/components/StickyCursor";
 
 const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID;
 
 const ExploreFatePools = () => {
+  const stickyRef = useRef<HTMLElement | null>(null);
   const [pools, setPools] = useState<Pool[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -301,6 +303,8 @@ const ExploreFatePools = () => {
   return (
     <>
       <Navbar />
+      <StickyCursor stickyRef={stickyRef} />
+
       <div className="min-h-screen bg-gradient-to-r from-gray-100 to-gray-300 dark:from-gray-800 dark:to-gray-900 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="mb-8">

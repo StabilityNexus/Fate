@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import type {FormData} from "@/types/FormData";
+import type { FormData } from "@/types/FormData";
 
 interface ReviewStepProps {
   formData: FormData;
@@ -99,23 +99,6 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
           </div>
         </div>
 
-        {/* Address Configuration Review */}
-        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-          <h3 className="font-semibold text-black dark:text-white mb-3">
-            Address Configuration
-          </h3>
-          <div className="grid grid-cols-1 gap-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">
-                Fee Recipient:
-              </span>
-              <span className="font-medium text-black dark:text-white break-all">
-                {formData.creatorAddress || "Will use connected wallet"}
-              </span>
-            </div>
-          </div>
-        </div>
-
         {/* Fee Configuration Review */}
         <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
           <h3 className="font-semibold text-black dark:text-white mb-3">
@@ -123,40 +106,41 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
           </h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">
-                Creator Stake Fee:
-              </span>
+              <div className="text-gray-600 dark:text-gray-400">
+                Protocol Fee:
+              </div>
               <span className="font-medium text-black dark:text-white">
-                {formData.creatorStakeFee || "0"}%
+                {formData.protocolFee || "0"}%
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">
-                Creator Unstake Fee:
+                Stable Order Fee:
               </span>
               <span className="font-medium text-black dark:text-white">
-                {formData.creatorUnstakeFee || "0"}%
+                {formData.stableOrderFee || "0"}%
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-gray-400">
-                Stake Fee:
+                Pool Creator Fee:
               </span>
               <span className="font-medium text-black dark:text-white">
-                {formData.stakeFee || "0"}%
+                {formData.poolCreatorFee || "0"}%
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">
-                Unstake Fee:
-              </span>
-              <span className="font-medium text-black dark:text-white">
-                {formData.unstakeFee || "0"}%
-              </span>
+            <div className="grid grid-cols-1 gap-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">
+                  Fee Recipient:
+                </span>
+                <span className="font-medium text-black dark:text-white break-all">
+                  {formData.poolCreatorAddress || "Will use connected wallet"}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-
         <Button
           onClick={onSubmit}
           disabled={isSubmitting}

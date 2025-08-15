@@ -93,7 +93,7 @@ const PoolConfigurationStep: React.FC<PoolConfigurationStepProps> = ({
           id="assetId"
           name="assetId"
           value={formData.assetId || ""}
-          onChange={(e) => updateFormData({ assetId: e.target.value })}
+          onChange={(e) => updateFormData({ assetId: e.target.value, assetAddress: e.target.value })}
           className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
         >
           <option value="" disabled>
@@ -103,7 +103,7 @@ const PoolConfigurationStep: React.FC<PoolConfigurationStepProps> = ({
             BTC/USD
           </option>
           <option value="0xca80ba6dc32e08d06f1aa886011eed1d77c77be9eb761cc10d72b7d0a2fd57a6">ETH/USD</option>
-          <option value="0x73dc009953c83c944690037ea477df627657f45c14f16ad3a61089c5a3f9f4f2">ADA/USD</option>
+          {/* <option value="0x73dc009953c83c944690037ea477df627657f45c14f16ad3a61089c5a3f9f4f2">ADA/USD</option> */}
         </select>
       </div>
     </div>

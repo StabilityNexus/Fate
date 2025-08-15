@@ -36,7 +36,7 @@ const StepIndicator = ({
             </div>
             {step < totalSteps && (
               <div
-                className={`h-1 w-20 mx-2 ml-7 transition-all ${
+                className={`h-1 w-20 mx-2 ml-14 transition-all ${
                   step < currentStep
                     ? "bg-green-500"
                     : "bg-gray-200 dark:bg-gray-700"

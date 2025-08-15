@@ -4,9 +4,8 @@ import { ArrowRight } from "lucide-react";
 
 interface PredictionCardProps {
   name: string;
-  bullCoinName: string;
+  description: string;
   bullCoinSymbol: string;
-  bearCoinName: string;
   bearCoinSymbol: string;
   bullPercentage: number;
   bearPercentage: number;
@@ -17,9 +16,8 @@ interface PredictionCardProps {
 
 export function PredictionCard({
   name,
-  bullCoinName,
+  description,
   bullCoinSymbol,
-  bearCoinName,
   bearCoinSymbol,
   bullPercentage,
   bearPercentage,
@@ -31,12 +29,9 @@ export function PredictionCard({
       <div className="bg-gradient-to-r from-gray-600 to-gray-800 p-6">
         <div className="mb-4">
           <h2 className="text-2xl font-bold text-white mb-1">{name}</h2>
-          <p className="text-gray-200 text-sm">
-            {bullCoinName}/{bearCoinName} ({bullCoinSymbol}/{bearCoinSymbol})
-          </p>
+          <p className="text-gray-200 text-sm">{description}</p>
         </div>
       </div>
-
 
       <div className="p-6">
         <div className="mb-6">
@@ -44,7 +39,7 @@ export function PredictionCard({
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-gray-500"></div>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {bullCoinSymbol} Bulls
+                {bullCoinSymbol}
               </span>
             </div>
             <span className="text-sm font-bold text-gray-700 dark:text-gray-400">
@@ -56,7 +51,7 @@ export function PredictionCard({
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-gray-600"></div>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {bearCoinSymbol} Bears
+                {bearCoinSymbol}
               </span>
             </div>
             <span className="text-sm font-bold text-gray-700 dark:text-gray-400">
@@ -64,7 +59,7 @@ export function PredictionCard({
             </span>
           </div>
 
-          <RangeSlider value={bullPercentage} onChange={() => { }} />
+          <RangeSlider value={bullPercentage} onChange={() => {}} />
         </div>
 
         <button
@@ -77,27 +72,6 @@ export function PredictionCard({
           Enter Pool
           <ArrowRight size={18} />
         </button>
-      </div>
-
-      <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center">
-            {/* <p className="text-sm text-gray-500 dark:text-gray-400">
-              Min Stake
-            </p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              0.1 ETH
-            </p> */}
-          </div>
-          <div className="text-center">
-            {/* <p className="text-sm text-gray-500 dark:text-gray-400">
-              Total Staked
-            </p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              24.5 ETH
-            </p> */}
-          </div>
-        </div>
       </div>
     </div>
   );

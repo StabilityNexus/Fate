@@ -33,6 +33,8 @@ export interface Pool {
   pool_creator_fee: string;
   protocol_fee: string;
   stable_order_fee: string;
+  mint_fee?: string;
+  burn_fee?: string;
 }
 
 export interface UserBalances {

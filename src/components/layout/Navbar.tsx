@@ -54,10 +54,10 @@ const Navbar = () => {
               <Link
                 key={label}
                 href={href}
-                className={`hover:text-gray-400 transition-all duration-200 ${
+                className={`hover:text-neutral-400 transition-all duration-200 ${
                   isActive
                     ? "border-b-2 border-white pb-1 text-white"
-                    : "text-gray-300"
+                    : "text-neutral-300"
                 }`}
               >
                 {label}
@@ -71,8 +71,8 @@ const Navbar = () => {
           <ConnectButton
             className={`font-medium rounded-full transition-colors ${
               resolvedTheme === "dark"
-                ? "bg-white text-black hover:bg-gray-200"
-                : "bg-black text-white hover:bg-gray-200"
+                ? "bg-white text-black hover:bg-neutral-200"
+                : "bg-black text-white hover:bg-neutral-200"
             }`}
           >
             Connect Wallet

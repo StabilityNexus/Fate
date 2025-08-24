@@ -11,7 +11,7 @@ export default function AboutSection() {
       className="relative pt-36 pb-32 bg-white dark:bg-black "
     >
       {/* Visible gradient background */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-white to-gray-100 dark:from-black dark:to-gray-900 opacity-80" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-white to-neutral-100 dark:from-black dark:to-neutral-900 opacity-80" />
 
       <div className="container mx-auto px-6 md:px-16 relative z-10">
         {/* Heading */}
@@ -26,14 +26,14 @@ export default function AboutSection() {
               key={index}
               whileHover={{ scale: 1.07 }}
               transition={{ duration: 0.3 }}
-              className="rounded-3xl bg-white/40 dark:bg-[#0b0b0b]/50 border border-gray-200 dark:border-gray-800 p-10 backdrop-blur-lg shadow-xl hover:shadow-2xl transition-all"
+              className="rounded-3xl bg-white/40 dark:bg-[#0b0b0b]/50 border border-neutral-200 dark:border-neutral-800 p-10 backdrop-blur-lg shadow-xl hover:shadow-2xl transition-all"
             >
               <CardHeader className="space-y-6">
                 <div className="flex justify-center">{feature.icon}</div>
-                <CardTitle className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white">
+                <CardTitle className="text-2xl md:text-3xl font-bold text-center text-neutral-900 dark:text-white">
                   {feature.title}
                 </CardTitle>
-                <CardDescription className="text-center text-gray-700 dark:text-gray-300 text-base md:text-lg leading-relaxed">
+                <CardDescription className="text-center text-neutral-700 dark:text-neutral-300 text-base md:text-lg leading-relaxed">
                   {feature.description}
                 </CardDescription>
               </CardHeader>
@@ -43,7 +43,7 @@ export default function AboutSection() {
 
         {/* Closing Statement */}
         <div className="mt-28 text-center">
-          <p className="text-xl md:text-2xl text-gray-800 dark:text-gray-200 tracking-wide">
+          <p className="text-xl md:text-2xl text-neutral-800 dark:text-neutral-200 tracking-wide">
             In a world of uncertainty, <br className="md:hidden" />
             <span className="font-semibold">
               we provide{" "}

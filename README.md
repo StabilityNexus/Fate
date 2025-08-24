@@ -9,7 +9,7 @@ A decentralized, perpetual prediction pool protocol on [Sui](https://sui.io/), d
 ##  Project Links
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&pause=1000&color=blue&center=true&vCenter=true&multiline=true&width=600&lines=Check+them+out+to+understand+Fate+Protocol!" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&pause=1000&color=neutral&center=true&vCenter=true&multiline=true&width=600&lines=Check+them+out+to+understand+Fate+Protocol!" alt="Typing SVG" />
 </p>
 
 🌐 [**Live Homepage** »](https://fate-ivory.vercel.app/)  

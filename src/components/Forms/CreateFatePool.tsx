@@ -304,12 +304,12 @@ export default function CreateFatePoolForm() {
   return (
     <div className="max-w-4xl mx-auto p-4 dark:bg-black bg-white">
       <div className="bg-white dark:bg-black p-6 rounded-xl my-10">
-        <Card className="shadow-lg bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+        <Card className="shadow-lg bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700">
+          <CardHeader className="border-b border-neutral-200 dark:border-neutral-700">
             <CardTitle className="text-2xl font-bold text-black dark:text-white">
               Create Fate Pool
             </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+            <CardDescription className="text-neutral-600 dark:text-neutral-400">
               Follow the steps to configure your new Fate Pool
             </CardDescription>
           </CardHeader>
@@ -322,14 +322,14 @@ export default function CreateFatePoolForm() {
 
             <div className="">{renderCurrentStep()}</div>
 
-            <Separator className="bg-gray-200 dark:bg-gray-700 my-6" />
+            <Separator className="bg-neutral-200 dark:bg-neutral-700 my-6" />
             <div className="flex justify-between">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handlePrevious}
                 disabled={currentStep === 1}
-                className="flex items-center gap-2 bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+                className="flex items-center gap-2 bg-black text-white hover:bg-neutral-900 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Previous
@@ -338,7 +338,7 @@ export default function CreateFatePoolForm() {
                 type="button"
                 onClick={handleNext}
                 disabled={currentStep === 4}
-                className="flex items-center gap-2 bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+                className="flex items-center gap-2 bg-black text-white hover:bg-neutral-900 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />

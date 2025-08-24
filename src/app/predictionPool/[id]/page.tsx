@@ -50,10 +50,8 @@ export default function PredictionPoolDashboard() {
     return s;
   };
 
-  const formatTokens = (amount: number) =>
-    formatNumber(safeNumber(amount) / 1e9, 6);
   const formatValue = (value: number) =>
-    `${formatNumber(safeNumber(value) / 1e9, 6)} SUI`;
+    `${formatNumber(safeNumber(value) / 1e9, 3)} SUI`;
 
   const poolData = pool
     ? {
@@ -166,7 +164,7 @@ export default function PredictionPoolDashboard() {
         <Navbar />
         <StickyCursor stickyRef={stickyRef} />
 
-        <div className="container mx-auto px-6 py-8">
+        <div className="container mx-auto px-5 py-4">
           {distributeError && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 font-medium">
               {distributeError}
@@ -174,9 +172,9 @@ export default function PredictionPoolDashboard() {
           )}
 
           {/* Pool Info */}
-          <div className="border border-neutral-300 dark:border-neutral-600 rounded-lg p-6 bg-white dark:bg-neutral-900 mb-8 shadow-sm">
+          <div className="border border-neutral-300 dark:border-neutral-600 rounded-lg p-3 bg-white dark:bg-neutral-900 mb-4 shadow-sm">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-              <div className="flex-1">
+              <div className="flex-1 p-1">
                 <h1 className="text-3xl font-bold mb-2 text-neutral-900 dark:text-white">
                   {poolData.name}
                 </h1>
@@ -184,64 +182,79 @@ export default function PredictionPoolDashboard() {
                   {poolData.description}
                 </p>
 
-                {/* Pool Ratio Badges */}
                 <div className="flex items-center space-x-2">
+                  {/* Price */}
                   <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-                    Pool Composition:
+                    Price: {asset?.name || ""}
                   </span>
-                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 font-semibold px-3 py-1">
-                    {formatNumber(bullPercentage, 1)}% Bull
-                  </Badge>
-                  <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 font-semibold px-3 py-1">
-                    {formatNumber(bearPercentage, 1)}% Bear
-                  </Badge>
-                </div>
-                <div className="flex items-center space-x-2">
+
                   <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-                    Fees:{" "}
-                    {poolData.mint_fee +
-                      poolData.burn_fee +
-                      poolData.protocol_fee +
-                      poolData.vault_creator_fee}
-                    %
+                    |
                   </span>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <InfoIcon className="w-4 h-4 text-neutral-400 dark:text-neutral-600 hover:text-neutral-600 dark:hover:text-neutral-400 cursor-pointer transition-colors" />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" align="center">
-                        <div className="bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 px-3 py-2 rounded-xl shadow-lg text-sm space-y-1">
-                          <div className="flex justify-between">
-                            <span className="font-medium">Creator Fee: </span>
-                            <span>{poolData.vault_creator_fee}%</span>
+
+                  {/* Fees with tooltip */}
+                  <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400 flex items-center space-x-1">
+                    <span>Fees</span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <InfoIcon className="w-4 h-4 text-neutral-400 dark:text-neutral-600 hover:text-neutral-600 dark:hover:text-neutral-400 cursor-pointer transition-colors" />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" align="center">
+                          <div className="bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 px-3 py-2 rounded-xl shadow-lg text-sm space-y-1">
+                            <div className="flex justify-between">
+                              <span className="font-medium">Creator Fee:</span>
+                              <span>{poolData.vault_creator_fee}%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="font-medium">Protocol Fee:</span>
+                              <span>{poolData.protocol_fee}%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="font-medium">Mint Fee:</span>
+                              <span>{poolData.mint_fee}%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="font-medium">Burn Fee:</span>
+                              <span>{poolData.burn_fee}%</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium">Protocol Fee: </span>
-                            <span> {poolData.protocol_fee}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium">Mint Fee: </span>
-                            <span>{poolData.mint_fee}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium">Burn Fee: </span>
-                            <span>{poolData.burn_fee}%</span>
-                          </div>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </span>
                 </div>
               </div>
-              <div className="lg:min-w-[300px] ">
-                <div className="grid grid-cols-1 lg:min-h-[120px] sm:grid-cols-2 lg:grid-cols-1 gap-4">
-                  <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-4 justify-center items-center flex flex-col">
-                    <div className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-1">
-                      Total Pool Value
+              <div className="lg:min-w-[300px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                  <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-3 justify-center items-center flex flex-col">
+                    <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1">
+                      Total Value Locked
                     </div>
-                    <div className="text-2xl font-bold text-neutral-900 dark:text-white">
+                    <div className="text-lg font-bold text-neutral-900 dark:text-white">
                       {formatValue(totalReserves)}
+                    </div>
+
+                    {/* Pool Ratio Bar */}
+                    <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2 my-2 flex overflow-hidden">
+                      <div
+                        className="bg-green-500 h-2"
+                        style={{ width: `${bullPercentage}%` }}
+                      ></div>
+                      <div
+                        className="bg-red-500 h-2"
+                        style={{ width: `${bearPercentage}%` }}
+                      ></div>
+                    </div>
+
+                    {/* Bull/Bear Text */}
+                    <div className="flex justify-between w-full text-xs font-medium">
+                      <span className="text-green-600 dark:text-green-400">
+                        {bullPercentage.toFixed(1)}% Bull
+                      </span>
+                      <span className="text-red-600 dark:text-red-400">
+                        {bearPercentage.toFixed(1)}% Bear
+                      </span>
                     </div>
                   </div>
                 </div>

@@ -25,6 +25,7 @@ import type { FormData } from "@/types/FormData";
 import { Transaction } from "@mysten/sui/transactions";
 import { useWallet } from "@suiet/wallet-kit";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 type FormErrors = Partial<Record<keyof FormData, string>>;
 
 export default function CreateFatePoolForm() {
@@ -122,7 +123,7 @@ export default function CreateFatePoolForm() {
     console.log("Form submitted:", formData);
 
     if (!account?.address) {
-      alert("Please connect your wallet.");
+      toast.error("Please connect your wallet.");
       setIsSubmitting(false);
       return;
     }
@@ -135,7 +136,9 @@ export default function CreateFatePoolForm() {
       "0x31358d198147da50db32eda2562951d53973a0c0ad5ed738e9b17d88b213d790";
 
     if (!PACKAGE_ID || !PYTH_STATE_ID) {
-      alert("Missing environment variables for PACKAGE_ID or PYTH_STATE_ID");
+      toast.error(
+        "Missing environment variables for PACKAGE_ID or PYTH_STATE_ID"
+      );
       setIsSubmitting(false);
       return;
     }
@@ -243,20 +246,12 @@ export default function CreateFatePoolForm() {
         console.log("New pool ID:", poolId);
       }
 
-      alert("Prediction Pool created successfully!");
+      toast.success("Prediction Pool created successfully!");
       router.push("/predictionPool");
     } catch (err: any) {
       console.error("Transaction error:", err);
 
-      if (err.message?.includes("InsufficientGas")) {
-        alert(
-          "Transaction failed: Insufficient gas. Please try again with a higher gas budget."
-        );
-      } else if (err.message?.includes("price")) {
-        alert("Transaction failed: Price feed error. Please try again.");
-      } else {
-        alert(`Transaction failed: ${err.message || err}`);
-      }
+      toast.error(`Transaction failed: ${err.message || err}`);
     } finally {
       setIsSubmitting(false);
     }

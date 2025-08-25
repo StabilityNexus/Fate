@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/themeProvider";
 import { ProviderSui } from "@/Providers/SuiProvider";
 import AppLoader from "@/components/Loader";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,7 +39,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <AppLoader minDuration={700}>{children}</AppLoader>
+            <AppLoader minDuration={700}>{children}
+              <Toaster />
+            </AppLoader>
           </ThemeProvider>
         </ProviderSui>
       </body>

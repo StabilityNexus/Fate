@@ -2,9 +2,9 @@
 import { useCallback } from "react";
 import { SuiClient } from "@mysten/sui/client";
 import { Transaction } from "@mysten/sui/transactions";
-import { useWallet } from "@suiet/wallet-kit"; 
+import { useWallet } from "@suiet/wallet-kit";
 import { useUpdatePythPrice } from "./useUpdatePythPrice";
-
+import toast from "react-hot-toast";
 interface BuyTokensParams {
   amount: number;
   isBull: boolean;
@@ -19,7 +19,7 @@ export function useBuyTokens() {
   const buyTokens = useCallback(
     async ({ amount, isBull, vaultId, assetId }: BuyTokensParams) => {
       if (!amount || amount <= 0 || !account?.address) {
-        alert("Please enter a valid amount and connect your wallet");
+        toast.error("Please enter a valid amount and connect your wallet");
         return;
       }
 
@@ -28,7 +28,7 @@ export function useBuyTokens() {
         "0x0000000000000000000000000000000000000000000000000000000000000006";
 
       if (!PACKAGE_ID) {
-        alert("Missing PACKAGE_ID in environment variables");
+        toast.error("Missing PACKAGE_ID in environment variables");
         return;
       }
 
@@ -54,9 +54,11 @@ export function useBuyTokens() {
           BigInt(0)
         );
 
-        if (totalBalance < amountInMist + BigInt(200_000_000)) {
+        if (totalBalance < amountInMist + BigInt(100_000_000)) {
           throw new Error(
-            `Insufficient balance. Required: ${amountInMist.toString()}, Available: ${totalBalance.toString()}`
+            `Insufficient balance. Required: ${
+              amountInMist + BigInt(100_000_000)
+            }, Available: ${totalBalance.toString()}`
           );
         }
 
@@ -80,27 +82,16 @@ export function useBuyTokens() {
         const result = await signAndExecuteTransaction({ transaction: tx });
 
         console.log("Transaction result:", result);
-        alert(`${isBull ? "Bull" : "Bear"} token purchase successful!`);
+        toast.success(`${isBull ? "Bull" : "Bear"} token purchase successful!`);
         window.location.reload();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error("Buy token failed:", error);
 
-        let errorMessage = "Unknown error occurred";
-        if (error.message?.includes("InsufficientGas")) {
-          errorMessage =
-            "Transaction failed: Insufficient gas. Please try again with a higher gas budget.";
-        } else if (error.message?.includes("InsufficientBalance")) {
-          errorMessage = "Insufficient SUI balance for this transaction.";
-        } else if (error.message?.includes("price")) {
-          errorMessage =
-            "Transaction failed: Price feed error. Please try again.";
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-
-        alert(
-          `${isBull ? "Bull" : "Bear"} token purchase failed: ${errorMessage}`
+        toast.error(
+          `${isBull ? "Bull" : "Bear"} token purchase failed: ${
+            error.message
+          }`
         );
       }
     },

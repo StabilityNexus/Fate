@@ -2,12 +2,13 @@
 import { useCallback } from "react";
 import { SuiClient } from "@mysten/sui/client";
 import { Transaction } from "@mysten/sui/transactions";
-import { useWallet } from "@suiet/wallet-kit"; 
+import { useWallet } from "@suiet/wallet-kit";
 import { useUpdatePythPrice } from "./useUpdatePythPrice";
+import toast from "react-hot-toast";
 
 interface PredictionPool {
   id: string;
-  pool_creator: string; 
+  pool_creator: string;
   assetId: string;
 }
 
@@ -18,7 +19,7 @@ export function useDistribute() {
   const distribute = useCallback(
     async (pool: PredictionPool) => {
       if (!account?.address) {
-        alert("Please connect your wallet");
+        toast.error("Please connect your wallet");
         return;
       }
 
@@ -27,14 +28,14 @@ export function useDistribute() {
         "0x0000000000000000000000000000000000000000000000000000000000000006";
 
       if (!PACKAGE_ID) {
-        alert("Missing PACKAGE_ID in environment variables");
+        toast.error("Missing PACKAGE_ID in environment variables");
         return;
       }
 
-    //   if (account.address !== pool.pool_creator) {
-    //     alert("Only the pool creator can settle outcomes.");
-    //     return;
-    //   }
+      if (account.address !== pool.pool_creator) {
+        toast.error("Only the pool creator can settle outcomes.");
+        return;
+      }
 
       try {
         console.log("Starting outcome settlement...", {
@@ -82,9 +83,8 @@ export function useDistribute() {
         const result = await signAndExecuteTransaction({ transaction: tx });
 
         console.log("Settlement result:", result);
-        alert("Outcome settlement successful!");
-        window.location.reload();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        toast.success("Outcome settlement successful!");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error("Settle outcome failed:", error);
 
@@ -104,7 +104,7 @@ export function useDistribute() {
           errorMessage = error.message;
         }
 
-        alert(`Outcome settlement failed: ${errorMessage}`);
+        toast.error(`Outcome settlement failed: ${errorMessage}`);
       }
     },
     [account?.address, signAndExecuteTransaction, updatePythPrice]

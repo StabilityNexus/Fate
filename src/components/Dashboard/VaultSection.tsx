@@ -22,6 +22,7 @@ interface VaultSectionProps {
   returns: number;
   symbol: string;
   connected: boolean;
+  handlePoll: () => Promise<any>;
 }
 
 const VaultSection = ({
@@ -33,6 +34,7 @@ const VaultSection = ({
   returns,
   symbol,
   connected,
+  handlePoll,
 }: VaultSectionProps) => {
   const { buyTokens } = useBuyTokens();
   const { sellTokens } = useSellTokens();
@@ -112,6 +114,7 @@ const VaultSection = ({
     } finally {
       setIsBuyLoading(false);
     }
+    await handlePoll();
   };
 
   const handleSell = async () => {
@@ -137,6 +140,7 @@ const VaultSection = ({
     } finally {
       setIsSellLoading(false);
     }
+    await handlePoll();
   };
 
   const handleBuyAmountChange = (value: string) => {

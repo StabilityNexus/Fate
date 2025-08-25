@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { Transaction } from "@mysten/sui/transactions";
 import { useWallet } from "@suiet/wallet-kit";
 import { useUpdatePythPrice } from "./useUpdatePythPrice";
+import toast from "react-hot-toast";
 
 interface SellTokensParams {
   amount: number;
@@ -18,7 +19,7 @@ export function useSellTokens() {
   const sellTokens = useCallback(
     async ({ amount, isBull, vaultId, assetId }: SellTokensParams) => {
       if (!amount || amount <= 0 || !account?.address) {
-        alert("Please enter a valid amount and connect your wallet");
+        toast.error("Please enter a valid amount and connect your wallet");
         return;
       }
 
@@ -27,7 +28,7 @@ export function useSellTokens() {
         "0x0000000000000000000000000000000000000000000000000000000000000006";
 
       if (!PACKAGE_ID) {
-        alert("Missing PACKAGE_ID in environment variables");
+        toast.error("Missing PACKAGE_ID in environment variables");
         return;
       }
 
@@ -59,26 +60,15 @@ export function useSellTokens() {
         const result = await signAndExecuteTransaction({ transaction: tx });
 
         console.log("Transaction result:", result);
-        alert(`${isBull ? "Bull" : "Bear"} token sale successful!`);
+        toast.success(`${isBull ? "Bull" : "Bear"} token sale successful!`);
         window.location.reload();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error("Sell token failed:", error);
 
-        let errorMessage = "Unknown error occurred";
-        if (error.message?.includes("InsufficientGas")) {
-          errorMessage =
-            "Transaction failed: Insufficient gas. Please try again with a higher gas budget.";
-        } else if (error.message?.includes("InsufficientBalance")) {
-          errorMessage = "Insufficient token balance for this transaction.";
-        } else if (error.message?.includes("price")) {
-          errorMessage =
-            "Transaction failed: Price feed error. Please try again.";
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-
-        alert(`${isBull ? "Bull" : "Bear"} token sale failed: ${errorMessage}`);
+        toast.error(
+          `${isBull ? "Bull" : "Bear"} token sale failed: ${error.message}`
+        );
       }
     },
     [account?.address, signAndExecuteTransaction, updatePythPrice]

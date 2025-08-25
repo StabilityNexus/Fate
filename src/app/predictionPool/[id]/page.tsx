@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -10,8 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Coins, InfoIcon, RefreshCw } from "lucide-react";
+import { InfoIcon, RefreshCw, Pause, Play } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import { useWallet } from "@suiet/wallet-kit";
 import { useParams } from "next/navigation";
@@ -23,6 +23,8 @@ import StickyCursor from "@/components/StickyCursor";
 import AppLoader from "@/components/Loader";
 import VaultSection from "@/components/Dashboard/VaultSection";
 import { ASSET_CONFIG } from "@/config/assets";
+import { usePolling } from "@/fateHooks/usePolling";
+import { usePoolDataChanges } from "@/fateHooks/usePoolDataChanges";
 
 export default function PredictionPoolDashboard() {
   const stickyRef = useRef<HTMLElement | null>(null);
@@ -30,13 +32,17 @@ export default function PredictionPoolDashboard() {
   const { theme } = useTheme();
   const params = useParams();
   const { account, connected } = useWallet();
-  const { pool, userBalances, userAvgPrices, loading, error } = usePool(
-    params?.id as string,
-    account?.address as string
-  );
+  const { pool, userBalances, userAvgPrices, loading, error, refetch } =
+    usePool(params?.id as string, account?.address as string);
 
   const [isDistributeLoading, setIsDistributeLoading] = useState(false);
   const [distributeError, setDistributeError] = useState("");
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date());
+  const [previousPoolData, setPreviousPoolData] = useState<any>(null);
+  const [updateCount, setUpdateCount] = useState(0);
+
+  const POLLING_INTERVAL = 5000;
+  const [pollingEnabledState, setPollingEnabledState] = useState(true);
 
   const safeNumber = (num: any, fallback = 0) =>
     !isFinite(num) || isNaN(num) ? fallback : Number(num);
@@ -85,40 +91,109 @@ export default function PredictionPoolDashboard() {
         burn_fee: 0,
       };
 
-  // Calculations
-  const totalReserves = poolData.bull_reserve + poolData.bear_reserve;
-  const bullPercentage =
-    totalReserves > 0 ? (poolData.bull_reserve / totalReserves) * 100 : 50;
-  const bearPercentage =
-    totalReserves > 0 ? (poolData.bear_reserve / totalReserves) * 100 : 50;
-
-  const bullPrice = safeNumber(
-    poolData.bull_reserve / 1e9 / (poolData.bull_supply / 1e9),
-    0
-  );
-  const bearPrice = safeNumber(
-    poolData.bear_reserve / 1e9 / (poolData.bear_supply / 1e9),
-    0
+  const { hasChanges, changes } = usePoolDataChanges(
+    poolData,
+    previousPoolData
   );
 
-  const userBullTokens = userBalances.bull_tokens / 1e9;
-  const userBearTokens = userBalances.bear_tokens / 1e9;
-  const userBullValue = userBullTokens * bullPrice;
-  const userBearValue = userBearTokens * bearPrice;
+  const handlePoll = useCallback(async () => {
+    if (!pool?.id?.id || loading) return;
+
+    try {
+      await refetch?.();
+      setLastUpdateTime(new Date());
+      setUpdateCount((prev) => prev + 1);
+    } catch (err) {
+      console.error("Polling error:", err);
+    }
+  }, [pool?.id?.id, loading, refetch]);
+
+  const pollingEnabled = useMemo(
+    () => !loading && !!pool?.id?.id && pollingEnabledState,
+    [loading, pool?.id?.id, pollingEnabledState]
+  );
+
+  const { isPolling, togglePolling } = usePolling(
+    handlePoll,
+    POLLING_INTERVAL,
+    pollingEnabled
+  );
+
+  const poolDataRef = useRef(poolData);
+  useEffect(() => {
+    if (poolData && poolData.id && poolData !== poolDataRef.current) {
+      setPreviousPoolData(poolDataRef.current);
+      poolDataRef.current = poolData;
+    }
+  }, [
+    poolData.id,
+    poolData.current_price,
+    poolData.bull_reserve,
+    poolData.bear_reserve,
+    poolData.bull_supply,
+    poolData.bear_supply,
+  ]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setPollingEnabledState(!document.hidden);
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  const calculations = useMemo(() => {
+    const totalReserves = poolData.bull_reserve + poolData.bear_reserve;
+    const bullPercentage =
+      totalReserves > 0 ? (poolData.bull_reserve / totalReserves) * 100 : 50;
+    const bearPercentage =
+      totalReserves > 0 ? (poolData.bear_reserve / totalReserves) * 100 : 50;
+
+    const bullPrice = safeNumber(
+      poolData.bull_reserve / 1e9 / (poolData.bull_supply / 1e9),
+      0
+    );
+    const bearPrice = safeNumber(
+      poolData.bear_reserve / 1e9 / (poolData.bear_supply / 1e9),
+      0
+    );
+
+    const userBullTokens = userBalances.bull_tokens / 1e9;
+    const userBearTokens = userBalances.bear_tokens / 1e9;
+    const userBullValue = userBullTokens * bullPrice;
+    const userBearValue = userBearTokens * bearPrice;
+
+    const userBullReturns = (() => {
+      if (userBullTokens === 0 || userAvgPrices.bull_avg_price === 0) return 0;
+      const cost = userBullTokens * userAvgPrices.bull_avg_price;
+      return ((userBullValue - cost) / cost) * 100;
+    })();
+
+    const userBearReturns = (() => {
+      if (userBearTokens === 0 || userAvgPrices.bear_avg_price === 0) return 0;
+      const cost = userBearTokens * userAvgPrices.bear_avg_price;
+      return ((userBearValue - cost) / cost) * 100;
+    })();
+
+    return {
+      totalReserves,
+      bullPercentage,
+      bearPercentage,
+      bullPrice,
+      bearPrice,
+      userBullTokens,
+      userBearTokens,
+      userBullValue,
+      userBearValue,
+      userBullReturns,
+      userBearReturns,
+    };
+  }, [poolData, userBalances, userAvgPrices]);
+
   const asset = ASSET_CONFIG[poolData.asset_id];
-  const userBullReturns = (() => {
-    if (userBullTokens === 0 || userAvgPrices.bull_avg_price === 0) return 0;
-    const cost = userBullTokens * userAvgPrices.bull_avg_price;
-    console.log("UserBullReturns :" + (userBullValue - cost) / cost);
-    return ((userBullValue - cost) / cost) * 100;
-  })();
-
-  const userBearReturns = (() => {
-    if (userBearTokens === 0 || userAvgPrices.bear_avg_price === 0) return 0;
-    const cost = userBearTokens * userAvgPrices.bear_avg_price;
-    console.log("UserBearReturns :" + (userBearValue - cost) / cost);
-    return ((userBearValue - cost) / cost) * 100;
-  })();
 
   const handleDistribute = async () => {
     if (!pool) return;
@@ -131,6 +206,7 @@ export default function PredictionPoolDashboard() {
         pool_creator: pool.pool_creator || "",
         assetId: pool.asset_address || "",
       });
+      await handlePoll();
     } catch (err: any) {
       setDistributeError(err?.message || "Failed to distribute rewards");
     } finally {
@@ -138,9 +214,9 @@ export default function PredictionPoolDashboard() {
     }
   };
 
-  if (loading)
+  if (loading && !pool)
     return (
-      <AppLoader minDuration={700}>
+      <AppLoader minDuration={100}>
         <></>
       </AppLoader>
     );
@@ -171,13 +247,69 @@ export default function PredictionPoolDashboard() {
             </div>
           )}
 
+          {/* Real-time Status Bar */}
+          {/* <div className="mb-4 flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${isPolling ? 'bg-green-500' : 'bg-red-500'} ${isPolling ? 'animate-pulse' : ''}`}></div>
+                <span className="text-sm font-medium">
+                  {isPolling ? 'Live Updates' : 'Updates Paused'}
+                </span>
+              </div>
+              <div className="text-xs text-neutral-600 dark:text-neutral-400">
+                Last updated: {lastUpdateTime.toLocaleTimeString()}
+              </div>
+              {hasChanges && (
+                <div className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                  Data Updated
+                </div>
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                Updates: {updateCount}
+              </span>
+              <Button
+                onClick={togglePolling}
+                size="sm"
+                variant="outline"
+                className="flex items-center space-x-1"
+              >
+                {isPolling ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                <span className="text-xs">{isPolling ? 'Pause' : 'Resume'}</span>
+              </Button>
+              <Button
+                onClick={handlePoll}
+                size="sm"
+                variant="outline"
+                disabled={loading}
+                className="flex items-center space-x-1"
+              >
+                <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+                <span className="text-xs">Refresh</span>
+              </Button>
+            </div>
+          </div> */}
+
           {/* Pool Info */}
           <div className="border border-neutral-300 dark:border-neutral-600 rounded-lg p-3 bg-white dark:bg-neutral-900 mb-4 shadow-sm">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-              <div className="flex-1 p-1">
-                <h1 className="text-3xl font-bold mb-2 text-neutral-900 dark:text-white">
-                  {poolData.name}
-                </h1>
+              <div className="flex-2 p-1">
+                <div className="flex items-center space-x-3">
+                  <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
+                    {poolData.name}
+                  </h1>
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        isPolling ? "bg-green-500" : "bg-red-500"
+                      } ${isPolling ? "animate-pulse" : ""}`}
+                    ></div>
+                    <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      {isPolling ? "Live Updates" : "Updates Paused"}
+                    </span>
+                  </div>
+                </div>
                 <p className="text-neutral-600 dark:text-neutral-400 text-lg mb-2">
                   {poolData.description}
                 </p>
@@ -224,40 +356,78 @@ export default function PredictionPoolDashboard() {
                     </TooltipProvider>
                   </span>
                 </div>
+
+                <div className="flex items-center space-x-2 mt-2 text-xs text-neutral-600 dark:text-neutral-400">
+                  <span>
+                    Last updated: {lastUpdateTime.toLocaleTimeString()}
+                  </span>
+                  <RefreshCw
+                    className={`w-3 h-3 cursor-pointer ${
+                      loading ? "animate-spin" : ""
+                    }`}
+                    onClick={handlePoll}
+                  />
+                </div>
               </div>
-              <div className="lg:min-w-[300px]">
+              <div className="lg:min-w-[300px] mt-1">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
                   <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-3 justify-center items-center flex flex-col">
                     <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1">
                       Total Value Locked
                     </div>
-                    <div className="text-lg font-bold text-neutral-900 dark:text-white">
-                      {formatValue(totalReserves)}
+                    <div
+                      className={`text-lg font-bold text-neutral-900 dark:text-white transition-all duration-300 ${
+                        changes.bull_reserve || changes.bear_reserve
+                          ? "text-blue-600 dark:text-blue-400"
+                          : ""
+                      }`}
+                    >
+                      {formatValue(calculations.totalReserves)}
                     </div>
 
-                    {/* Pool Ratio Bar */}
+                    {/* Pool Ratio Bar with animations */}
                     <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2 my-2 flex overflow-hidden">
                       <div
-                        className="bg-green-500 h-2"
-                        style={{ width: `${bullPercentage}%` }}
+                        className="bg-green-500 h-2 transition-all duration-500 ease-in-out"
+                        style={{ width: `${calculations.bullPercentage}%` }}
                       ></div>
                       <div
-                        className="bg-red-500 h-2"
-                        style={{ width: `${bearPercentage}%` }}
+                        className="bg-red-500 h-2 transition-all duration-500 ease-in-out"
+                        style={{ width: `${calculations.bearPercentage}%` }}
                       ></div>
                     </div>
 
                     {/* Bull/Bear Text */}
                     <div className="flex justify-between w-full text-xs font-medium">
-                      <span className="text-green-600 dark:text-green-400">
-                        {bullPercentage.toFixed(1)}% Bull
+                      <span
+                        className={`text-green-600 dark:text-green-400 transition-colors duration-300 ${
+                          changes.bull_reserve ? "font-bold" : ""
+                        }`}
+                      >
+                        {calculations.bullPercentage.toFixed(1)}% Bull
                       </span>
-                      <span className="text-red-600 dark:text-red-400">
-                        {bearPercentage.toFixed(1)}% Bear
+                      <span
+                        className={`text-red-600 dark:text-red-400 transition-colors duration-300 ${
+                          changes.bear_reserve ? "font-bold" : ""
+                        }`}
+                      >
+                        {calculations.bearPercentage.toFixed(1)}% Bear
                       </span>
                     </div>
                   </div>
                 </div>
+                {/* <Button
+                  onClick={handlePoll}
+                  size="sm"
+                  variant="outline"
+                  disabled={loading}
+                  className="flex items-center space-x-1"
+                >
+                  <RefreshCw
+                    className={`w-3 h-3 ${loading ? "animate-spin" : ""}`}
+                  />
+                  <span className="text-xs">Refresh</span>
+                </Button> */}
               </div>
             </div>
           </div>
@@ -268,12 +438,13 @@ export default function PredictionPoolDashboard() {
             <VaultSection
               isBull={true}
               poolData={poolData}
-              userTokens={userBullTokens}
-              price={bullPrice}
-              value={userBullValue}
-              returns={userBullReturns}
+              userTokens={calculations.userBullTokens}
+              price={calculations.bullPrice}
+              value={calculations.userBullValue}
+              returns={calculations.userBullReturns}
               symbol={pool?.bull_token?.fields?.symbol || "BULL"}
               connected={connected}
+              handlePoll={handlePoll}
             />
 
             {/* Chart */}
@@ -297,14 +468,6 @@ export default function PredictionPoolDashboard() {
                       vault to the winning vault.
                     </p>
                     <div className="text-sm space-y-2 mb-4 bg-white dark:bg-neutral-900 p-4 rounded-lg border border-neutral-200 dark:border-neutral-600">
-                      {/* <div className="flex justify-between">
-                        <span className="text-neutral-600 dark:text-neutral-400">
-                          Current price:
-                        </span>
-                        <span className="font-bold text-neutral-900 dark:text-white">
-                          1 BTC = 120,000 USD
-                        </span>
-                      </div> */}
                       <div className="flex justify-between">
                         <span className="text-neutral-600 dark:text-neutral-400">
                           Price at last rebalance:
@@ -363,12 +526,13 @@ export default function PredictionPoolDashboard() {
             <VaultSection
               isBull={false}
               poolData={poolData}
-              userTokens={userBearTokens}
-              price={bearPrice}
-              value={userBearValue}
-              returns={userBearReturns}
+              userTokens={calculations.userBearTokens}
+              price={calculations.bearPrice}
+              value={calculations.userBearValue}
+              returns={calculations.userBearReturns}
               symbol={pool?.bear_token?.fields?.symbol || "BEAR"}
               connected={connected}
+              handlePoll={handlePoll}
             />
           </div>
         </div>

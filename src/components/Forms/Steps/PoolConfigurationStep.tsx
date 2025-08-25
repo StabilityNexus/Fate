@@ -26,19 +26,19 @@ const PoolConfigurationStep: React.FC<PoolConfigurationStepProps> = ({
       {/* Pool Name */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Coins className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+          <Coins className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
           <Label
             htmlFor="poolName"
-            className="text-sm font-medium text-gray-600 dark:text-gray-400"
+            className="text-sm font-medium text-neutral-600 dark:text-neutral-400"
           >
             Name of the Fate Pool *
           </Label>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <InfoIcon className="h-4 w-4 text-gray-600/70 dark:text-gray-400/70 cursor-help" />
+                <InfoIcon className="h-4 w-4 text-neutral-600/70 dark:text-neutral-400/70 cursor-help" />
               </TooltipTrigger>
-              <TooltipContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400">
+              <TooltipContent className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400">
                 <p className="w-64 text-sm">
                   Enter a unique and descriptive name for your Fate Pool
                 </p>
@@ -53,7 +53,7 @@ const PoolConfigurationStep: React.FC<PoolConfigurationStepProps> = ({
           placeholder="e.g. FateBTC"
           value={formData.poolName}
           onChange={(e) => updateFormData({ poolName: e.target.value })}
-          className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-gray-200 dark:border-gray-700 text-black dark:text-white ${
+          className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-neutral-200 dark:border-neutral-700 text-black dark:text-white ${
             errors.poolName ? "border-red-500" : ""
           }`}
         />
@@ -66,7 +66,7 @@ const PoolConfigurationStep: React.FC<PoolConfigurationStepProps> = ({
       <div className="space-y-2">
         <Label
           htmlFor="poolDescription"
-          className="text-sm font-medium text-gray-600 dark:text-gray-400"
+          className="text-sm font-medium text-neutral-600 dark:text-neutral-400"
         >
           Pool Description
         </Label>
@@ -77,7 +77,7 @@ const PoolConfigurationStep: React.FC<PoolConfigurationStepProps> = ({
           placeholder="e.g. A BTC/USD prediction pool"
           value={formData.poolDescription || ""}
           onChange={(e) => updateFormData({ poolDescription: e.target.value })}
-          className="transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-gray-200 dark:border-gray-700 text-black dark:text-white"
+          className="transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-neutral-200 dark:border-neutral-700 text-black dark:text-white"
         />
       </div>
 
@@ -85,7 +85,7 @@ const PoolConfigurationStep: React.FC<PoolConfigurationStepProps> = ({
       <div className="space-y-2">
         <Label
           htmlFor="assetId"
-          className="text-sm font-medium text-gray-600 dark:text-gray-400"
+          className="text-sm font-medium text-neutral-600 dark:text-neutral-400"
         >
           Asset ID *
         </Label>
@@ -93,8 +93,8 @@ const PoolConfigurationStep: React.FC<PoolConfigurationStepProps> = ({
           id="assetId"
           name="assetId"
           value={formData.assetId || ""}
-          onChange={(e) => updateFormData({ assetId: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-black dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+          onChange={(e) => updateFormData({ assetId: e.target.value, assetAddress: e.target.value })}
+          className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-700 text-black dark:text-white bg-white dark:bg-neutral-800 rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
         >
           <option value="" disabled>
             Select an Asset ID
@@ -103,7 +103,7 @@ const PoolConfigurationStep: React.FC<PoolConfigurationStepProps> = ({
             BTC/USD
           </option>
           <option value="0xca80ba6dc32e08d06f1aa886011eed1d77c77be9eb761cc10d72b7d0a2fd57a6">ETH/USD</option>
-          <option value="0x73dc009953c83c944690037ea477df627657f45c14f16ad3a61089c5a3f9f4f2">ADA/USD</option>
+          {/* <option value="0x73dc009953c83c944690037ea477df627657f45c14f16ad3a61089c5a3f9f4f2">ADA/USD</option> */}
         </select>
       </div>
     </div>

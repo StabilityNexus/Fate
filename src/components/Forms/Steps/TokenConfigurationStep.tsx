@@ -24,7 +24,7 @@ const TokenConfigurationStep: React.FC<TokenConfigurationStepProps> = ({
         <h2 className="text-2xl font-bold text-black dark:text-white mb-2">
           Token Configuration
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-neutral-600 dark:text-neutral-400">
           Configure your bull and bear tokens
         </p>
       </div>
@@ -38,8 +38,8 @@ const TokenConfigurationStep: React.FC<TokenConfigurationStepProps> = ({
 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Coins className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <Coins className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+              <Label className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
                 Bull Coin Name *
               </Label>
             </div>
@@ -48,7 +48,7 @@ const TokenConfigurationStep: React.FC<TokenConfigurationStepProps> = ({
               placeholder="e.g. BullToken"
               value={formData.bullCoinName}
               onChange={(e) => updateFormData({ bullCoinName: e.target.value })}
-              className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-gray-200 dark:border-gray-700 text-black dark:text-white ${
+              className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-neutral-200 dark:border-neutral-700 text-black dark:text-white ${
                 errors.bullCoinName ? "border-red-500" : ""
               }`}
             />
@@ -59,8 +59,8 @@ const TokenConfigurationStep: React.FC<TokenConfigurationStepProps> = ({
 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Coins className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <Coins className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+              <Label className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
                 Bull Coin Symbol *
               </Label>
             </div>
@@ -71,7 +71,7 @@ const TokenConfigurationStep: React.FC<TokenConfigurationStepProps> = ({
               onChange={(e) =>
                 updateFormData({ bullCoinSymbol: e.target.value })
               }
-              className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-gray-200 dark:border-gray-700 text-black dark:text-white ${
+              className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-neutral-200 dark:border-neutral-700 text-black dark:text-white ${
                 errors.bullCoinSymbol ? "border-red-500" : ""
               }`}
             />
@@ -89,8 +89,8 @@ const TokenConfigurationStep: React.FC<TokenConfigurationStepProps> = ({
 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Coins className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <Coins className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+              <Label className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
                 Bear Coin Name *
               </Label>
             </div>
@@ -99,7 +99,7 @@ const TokenConfigurationStep: React.FC<TokenConfigurationStepProps> = ({
               placeholder="e.g. BearToken"
               value={formData.bearCoinName}
               onChange={(e) => updateFormData({ bearCoinName: e.target.value })}
-              className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-gray-200 dark:border-gray-700 text-black dark:text-white ${
+              className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-neutral-200 dark:border-neutral-700 text-black dark:text-white ${
                 errors.bearCoinName ? "border-red-500" : ""
               }`}
             />
@@ -110,8 +110,8 @@ const TokenConfigurationStep: React.FC<TokenConfigurationStepProps> = ({
 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Coins className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              <Coins className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+              <Label className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
                 Bear Coin Symbol *
               </Label>
             </div>
@@ -122,7 +122,7 @@ const TokenConfigurationStep: React.FC<TokenConfigurationStepProps> = ({
               onChange={(e) =>
                 updateFormData({ bearCoinSymbol: e.target.value })
               }
-              className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-gray-200 dark:border-gray-700 text-black dark:text-white ${
+              className={`transition-all focus:ring-2 focus:ring-black dark:focus:ring-white border-neutral-200 dark:border-neutral-700 text-black dark:text-white ${
                 errors.bearCoinSymbol ? "border-red-500" : ""
               }`}
             />

@@ -25,7 +25,7 @@ const StepIndicator = ({
                   ? "bg-green-500 border-green-500 text-white"
                   : step === currentStep
                   ? "bg-black dark:bg-white border-black dark:border-white text-white dark:text-black"
-                  : "bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500"
+                  : "bg-neutral-100 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-600 text-neutral-500"
               }`}
             >
               {step < currentStep ? (
@@ -36,10 +36,10 @@ const StepIndicator = ({
             </div>
             {step < totalSteps && (
               <div
-                className={`h-1 w-20 mx-2 ml-7 transition-all ${
+                className={`h-1 w-20 mx-2 ml-14 transition-all ${
                   step < currentStep
                     ? "bg-green-500"
-                    : "bg-gray-200 dark:bg-gray-700"
+                    : "bg-neutral-200 dark:bg-neutral-700"
                 }`}
               />
             )}
@@ -55,7 +55,7 @@ const StepIndicator = ({
                 ? "text-black dark:text-white"
                 : index + 1 < currentStep
                 ? "text-green-600"
-                : "text-gray-500"
+                : "text-neutral-500"
             }`}
           >
             {title}

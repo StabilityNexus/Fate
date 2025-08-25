@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import type {FormData} from "@/types/FormData";
+import type { FormData } from "@/types/FormData";
 
 interface ReviewStepProps {
   formData: FormData;
@@ -21,20 +21,20 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
         <h2 className="text-2xl font-bold text-black dark:text-white mb-2">
           Review & Submit
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-neutral-600 dark:text-neutral-400">
           Review your configuration before creating the pool
         </p>
       </div>
 
       <div className="space-y-6">
         {/* Pool Configuration Review */}
-        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+        <div className="bg-neutral-50 dark:bg-neutral-800 p-4 rounded-lg">
           <h3 className="font-semibold text-black dark:text-white mb-3">
             Pool Configuration
           </h3>
           <div className="grid grid-cols-1 gap-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">
+              <span className="text-neutral-600 dark:text-neutral-400">
                 Pool Name:
               </span>
               <span className="font-medium text-black dark:text-white">
@@ -45,7 +45,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
         </div>
 
         {/* Token Configuration Review */}
-        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+        <div className="bg-neutral-50 dark:bg-neutral-800 p-4 rounded-lg">
           <h3 className="font-semibold text-black dark:text-white mb-3">
             Token Configuration
           </h3>
@@ -56,7 +56,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
               </h4>
               <div className="space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
+                  <span className="text-neutral-600 dark:text-neutral-400">
                     Name:
                   </span>
                   <span className="font-medium text-black dark:text-white">
@@ -64,7 +64,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
+                  <span className="text-neutral-600 dark:text-neutral-400">
                     Symbol:
                   </span>
                   <span className="font-medium text-black dark:text-white">
@@ -79,7 +79,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
               </h4>
               <div className="space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
+                  <span className="text-neutral-600 dark:text-neutral-400">
                     Name:
                   </span>
                   <span className="font-medium text-black dark:text-white">
@@ -87,7 +87,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
+                  <span className="text-neutral-600 dark:text-neutral-400">
                     Symbol:
                   </span>
                   <span className="font-medium text-black dark:text-white">
@@ -99,68 +99,52 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
           </div>
         </div>
 
-        {/* Address Configuration Review */}
-        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-          <h3 className="font-semibold text-black dark:text-white mb-3">
-            Address Configuration
-          </h3>
-          <div className="grid grid-cols-1 gap-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">
-                Fee Recipient:
-              </span>
-              <span className="font-medium text-black dark:text-white break-all">
-                {formData.creatorAddress || "Will use connected wallet"}
-              </span>
-            </div>
-          </div>
-        </div>
-
         {/* Fee Configuration Review */}
-        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+        <div className="bg-neutral-50 dark:bg-neutral-800 p-4 rounded-lg">
           <h3 className="font-semibold text-black dark:text-white mb-3">
             Fee Configuration
           </h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">
-                Creator Stake Fee:
-              </span>
+              <div className="text-neutral-600 dark:text-neutral-400">
+                Protocol Fee:
+              </div>
               <span className="font-medium text-black dark:text-white">
-                {formData.creatorStakeFee || "0"}%
+                {formData.protocolFee || "0"}%
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">
-                Creator Unstake Fee:
+              <span className="text-neutral-600 dark:text-neutral-400">
+                Stable Order Fee:
               </span>
               <span className="font-medium text-black dark:text-white">
-                {formData.creatorUnstakeFee || "0"}%
+                {formData.stableOrderFee || "0"}%
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">
-                Stake Fee:
+              <span className="text-neutral-600 dark:text-neutral-400">
+                Pool Creator Fee:
               </span>
               <span className="font-medium text-black dark:text-white">
-                {formData.stakeFee || "0"}%
+                {formData.poolCreatorFee || "0"}%
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">
-                Unstake Fee:
-              </span>
-              <span className="font-medium text-black dark:text-white">
-                {formData.unstakeFee || "0"}%
-              </span>
+            <div className="grid grid-cols-1 gap-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-neutral-600 dark:text-neutral-400">
+                  Fee Recipient:
+                </span>
+                <span className="font-medium text-black dark:text-white break-all">
+                  {formData.poolCreatorAddress || "Will use connected wallet"}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-
         <Button
           onClick={onSubmit}
           disabled={isSubmitting}
-          className="w-full mt-6 text-lg h-12 bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-200 disabled:opacity-50"
+          className="w-full mt-6 text-lg h-12 bg-black text-white hover:bg-neutral-900 dark:bg-white dark:text-black dark:hover:bg-neutral-200 disabled:opacity-50"
         >
           {isSubmitting ? "Creating Pool..." : "Create Fate Pool"}
         </Button>

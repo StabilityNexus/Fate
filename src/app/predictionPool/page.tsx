@@ -347,11 +347,11 @@ const ExploreFatePools = () => {
       <Navbar />
       <StickyCursor stickyRef={stickyRef} />
 
-      <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
+      <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300 text-black dark:text-white ">
         <div className="max-w-full mx-auto px-4">
           {/* Header with Search and Stats */}
           <div className="mb-8">
-            <div className="bg-neutral-50 dark:bg-neutral-900 rounded-lg p-6 border border-neutral-200 dark:border-neutral-800">
+            <div className="bg-neutral-50  dark:bg-neutral-900 rounded-lg p-6 border border-neutral-200 dark:border-neutral-800">
               <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
                 {/* Search Bar */}
                 <div className="relative flex-1 min-w-80">
